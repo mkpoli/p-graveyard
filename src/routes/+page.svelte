@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Notation from '$lib/Notation.svelte';
 	import logo from '../assets/logo.png';
 </script>
 
@@ -32,6 +33,57 @@
 	</p>
 
 	<p>This site is a project that attempts to record all disappeared or transformed poor /p/ s.</p>
+
+	<h2>The Graveyard</h2>
+
+	<h3>Japanese</h3>
+
+	<p>~7c [citation needed]; Middle Japanese lost common /p/ almost completely.</p>
+	<h4><abbr title="Old Japanese">OJ</abbr> /p/</h4>
+	<p>Status: Marginally Alive</p>
+	<ul>
+		<li>
+			<Notation changes={['OJ: p', 'MJ: ɸ']} condition="V_V" />
+			<ul>
+				<li>
+					<Notation changes={['MJ~EmJ: ɸ', 'mJ: ɸ']} condition={'#_u'} />
+				</li>
+				<li>
+					<Notation changes={['MJ~EmJ: ɸ', 'mJ: h']} condition={'#_{a,o}'} />
+				</li>
+				<li>
+					<Notation changes={['MJ~EmJ: ɸ', 'mJ: ç']} condition={'#_i'} />
+				</li>
+			</ul>
+		</li>
+		<li>
+			<Notation changes={['OJ: p', 'MJ: w']} condition="V_V" />
+		</li>
+		<li>
+			<Notation changes={['OJ: p', 'mJ: p']} condition={'{N,R}_V'} />
+		</li>
+		<li>
+			Borrowed
+			<ul>
+				<li><Notation changes={['MC: p-', 'MJ: ɸ']} /></li>
+			</ul>
+			<ul>
+				<li><Notation changes={['MC: -p', 'MJ: ɸu']} /></li>
+			</ul>
+		</li>
+		<li>
+			Onomatopeic
+			<ul>
+				<li>e.g. /pikapika/ &lt; /pikari/ &gt; /hikari/</li>
+			</ul>
+		</li>
+	</ul>
+
+	<h4><abbr title="Early Modern Japanese">EmJ /p/</abbr></h4>
+	<p>Status: Alive</p>
+	<ul>
+		<li>Borrowed: /p/</li>
+	</ul>
 
 	<h2>References</h2>
 </main>
@@ -86,5 +138,16 @@
 
 	blockquote cite:before {
 		content: '— ';
+	}
+
+	ul {
+		text-align: left;
+
+		margin: 0 auto;
+		width: fit-content;
+	}
+
+	li {
+		width: fit-content;
 	}
 </style>
