@@ -88,6 +88,10 @@
 	<h2>References</h2>
 </main>
 
+<footer>
+	Part of <a href="https://languagepatterns.org">languagepatterns.org</a>.
+</footer>
+
 <style>
 	main {
 		padding: 0.5em;
@@ -149,5 +153,13 @@
 
 	li {
 		width: fit-content;
+	}
+
+	footer {
+		margin-top: 2em;
+		padding: 1em;
+		text-align: center;
+		font-size: 0.9em;
+		color: #666;
 	}
 </style>
