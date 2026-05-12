@@ -12,16 +12,24 @@
 
 <main>
 	<section class="quotes">
-		<blockquote>
-			However language began, one thing is certain — it immediately began to change, and has been
-			changing ever since.<cite>David Crystal (2007)</cite>
+		<blockquote class="q-en">
+			<span class="mark mark-open" aria-hidden="true">&ldquo;</span>
+			<p>
+				However language began, one thing is certain — it immediately began to change, and has
+				been changing ever since.
+			</p>
+			<span class="mark mark-close" aria-hidden="true">&rdquo;</span>
+			<cite>David Crystal · <span class="year">2007</span></cite>
 		</blockquote>
 
-		<blockquote lang="lzh">
-			時有古今。<br />
-			地有南北。<br />
-			字有更革。<br />
-			音有轉移。<cite>陳第（1606）</cite>
+		<blockquote lang="lzh" class="q-lzh">
+			<p>
+				時有古今。<br />
+				地有南北。<br />
+				字有更革。<br />
+				音有轉移。
+			</p>
+			<cite>陳第 · <span class="year">1606</span></cite>
 		</blockquote>
 	</section>
 
@@ -36,12 +44,18 @@
 			phonological conditions.
 		</p>
 		<p>
-			This site records those losses. Each row in the timeline below is one language's /p/ over
-			time. Solid amber means /p/ was still articulated as <code>[p]</code>; the gradient is the
-			interpolated window during which it shifted to something else; the cool grey is the
-			post-transition state. Splits in a row mark conditioned changes — when a single /p/ broke into
-			multiple environments and only some of those lineages survived. Dots are evidence points
-			(attestations or reconstructions); striped fills are extrapolated beyond the evidence.
+			This site records those losses. The diagram below is a phonological flow chart — each ribbon
+			is one lineage of /p/ over time. A ribbon's color is the phoneme as it's articulated at that
+			year (amber for /p/, blue for /f/, violet for /ɸ/, green for /h/, teal for /ç/, rose for /w/,
+			grey for ∅). When a single /p/ splits into multiple environments, ribbons fork. When the
+			color shifts mid-flow, that's a sound change in progress. Pre-evidence sections fade in
+			from transparent — we know /p/ was there, but its exact form is extrapolated. Dots are
+			attestation points. The ribbons are grouped by language family so you can see, e.g., the
+			fates of Indo-European *p side by side.
+		</p>
+		<p class="meta">
+			Drag horizontally to pan; use the zoom controls to expand a period. Hover any ribbon or dot for
+			details.
 		</p>
 	</section>
 
@@ -198,45 +212,119 @@
 	.quotes {
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 1em;
-		margin: 1.5em 0;
+		gap: 1.4em;
+		margin: 2em 0 2.5em;
 	}
-	@media (min-width: 720px) {
+	@media (min-width: 760px) {
 		.quotes {
-			grid-template-columns: 1fr auto;
+			grid-template-columns: 1fr 280px;
+			align-items: stretch;
 		}
 	}
+
 	blockquote {
+		position: relative;
 		margin: 0;
-		padding: 0.8em 1.2em;
-		background: #fbf8f0;
-		border-left: 4px solid #c08a3e;
-		border-radius: 4px;
-		font-style: italic;
-		font-size: 1.05em;
+		background: linear-gradient(180deg, #fdfbf3 0%, #f5efde 100%);
+		border: 1px solid #d8d2c4;
+		border-radius: 2px;
+		box-shadow:
+			0 1px 0 #fff inset,
+			0 6px 18px -10px rgba(60, 50, 30, 0.25),
+			0 1px 2px rgba(60, 50, 30, 0.06);
 	}
+
+	.q-en {
+		padding: 2em 2.4em 1.4em;
+		font-family: 'Garamond', 'Georgia', 'Cambria', serif;
+		font-size: 1.18em;
+		line-height: 1.55;
+		color: #2a2620;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.q-en p {
+		margin: 0;
+		font-style: italic;
+		text-indent: 0.4em;
+	}
+	.q-en .mark {
+		position: absolute;
+		font-family: 'Garamond', 'Georgia', serif;
+		font-size: 5.5em;
+		line-height: 1;
+		color: #c08a3e;
+		opacity: 0.45;
+		font-style: normal;
+		pointer-events: none;
+		user-select: none;
+	}
+	.q-en .mark-open {
+		top: -0.05em;
+		left: 0.08em;
+	}
+	.q-en .mark-close {
+		bottom: -0.42em;
+		right: 0.18em;
+	}
+
+	.q-lzh {
+		padding: 1.4em 1em 1.2em;
+		font-family: 'Noto Serif CJK', 'Source Han Serif', 'Songti', 'MS Mincho', serif;
+		font-size: 1.6em;
+		line-height: 1.9;
+		display: flex;
+		flex-direction: row-reverse;
+		justify-content: center;
+		align-items: stretch;
+		letter-spacing: 0.04em;
+		background:
+			radial-gradient(ellipse at 50% 0%, rgba(192, 138, 62, 0.06), transparent 70%),
+			linear-gradient(180deg, #f5efde 0%, #ebe2c8 100%);
+		border-color: #c4baa3;
+	}
+	.q-lzh p {
+		writing-mode: vertical-rl;
+		margin: 0;
+		color: #2a2620;
+	}
+	.q-lzh cite {
+		writing-mode: vertical-rl;
+	}
+
 	blockquote cite {
 		display: block;
-		margin-top: 0.4em;
+		margin-top: 0.8em;
 		font-style: normal;
-		font-weight: 600;
+		font-weight: 500;
+		font-size: 0.78em;
+		font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: #6b6357;
 		text-align: right;
-		font-size: 0.9em;
 	}
 	blockquote cite:before {
 		content: '— ';
+		color: #c08a3e;
 	}
-	blockquote[lang='lzh'] {
-		writing-mode: vertical-rl;
-		font-style: normal;
-		border-left: none;
-		border-right: 4px solid #5a6470;
-		padding: 1em 0.8em;
-		font-size: 1.1em;
+	blockquote cite .year {
+		color: #2a2620;
+	}
+	.q-lzh cite {
+		text-align: left;
+		margin: 0 0.6em 0 0;
+		font-size: 0.5em;
 	}
 
 	.intro p {
 		font-size: 1.02em;
+	}
+	.intro p.meta {
+		font-size: 0.92em;
+		color: #6b6357;
+		font-style: italic;
 	}
 
 	.timeline-wrap {

@@ -1,489 +1,707 @@
 <script lang="ts">
-	type Status = 'alive' | 'dying' | 'dead' | 'reborn';
+	type Evidence = { year: number; label: string; detail?: string };
 
-	type Evidence = {
+	type Stop = {
 		year: number;
-		label: string;
-		detail?: string;
+		phoneme: string;
+		/** 0..1; controls opacity. Used to fade pre-evidence sections in. */
+		opacity?: number;
 	};
 
-	type Branch = {
-		/** Display form on this branch */
-		form: string;
-		/** Form after transition (only if transitions) */
-		terminalForm?: string;
-		/** Phonological environment that conditions this branch */
+	type Flow = {
+		id: string;
+		family: 'pie' | 'psem' | 'oc' | 'pj';
+		label: string;
+		/** Sub-label for tooltip (e.g. conditioning environment) */
 		condition?: string;
-		/** Track index (0 is the trunk/main; higher = lower in row) */
-		track: number;
-		/** Optional parent track index — if set, a curved connector is drawn from parent at `splitAt` to this branch at `start` */
-		parent?: number;
-		/** Year this branch begins (split-off or first attestation) */
+		/** Lane within the family — fractional values allowed; controls vertical position */
+		lane: number;
+		/** Parent flow id and the year at which it splits off */
+		parent?: { id: string; year: number };
+		/** First year this flow renders. */
 		start: number;
-		/** Year this branch's parent stops carrying /p/ along this lineage; only meaningful with `parent` */
-		splitAt?: number;
-		/** Transition window: [a,b]. Inside the window the fill is a horizontal gradient warm→cool. */
-		transition?: [number, number];
-		/** Year this branch terminates. If `status === 'alive'`, use `END`. */
+		/** Last year this flow extends to. */
 		end: number;
-		/** Whether this branch still carries /p/, lost it, or was reborn from outside */
-		status: Status;
-		/** Whether the *start* of the branch is approximate (extrapolated) — drawn dashed */
-		approxStart?: boolean;
-		/** Whether the *end* of the branch is approximate — drawn dashed */
-		approxEnd?: boolean;
+		/** Year before `start` from which the flow fades in (extrapolation). */
+		fadeFrom?: number;
+		/** Color stops for the band. Color is interpolated across years. */
+		stops: Stop[];
 		evidence?: Evidence[];
+		status: 'alive' | 'dead' | 'dying' | 'reborn';
 		note?: string;
 	};
 
-	type Language = {
-		id: string;
-		name: string;
-		family: string;
-		summary: string;
-		description: string;
-		branches: Branch[];
+	const PHONEME_COLOR: Record<string, string> = {
+		p: '#c08a3e',
+		'*p': '#c08a3e',
+		'pʰ': '#cb9540',
+		b: '#a17440',
+		f: '#3a7ab5',
+		'*f': '#3a7ab5',
+		ɸ: '#7c5ba8',
+		v: '#2c5a8a',
+		h: '#5fa052',
+		ç: '#4a8a8a',
+		w: '#c46d8f',
+		'∅': '#9a948a'
 	};
 
-	const START = -2000;
-	const END = 2025;
+	const families: { id: Flow['family']; name: string; sub: string }[] = [
+		{ id: 'pie', name: 'Indo-European', sub: 'PIE *p → daughters' },
+		{ id: 'psem', name: 'Semitic', sub: 'Proto-Semitic *p → daughters' },
+		{ id: 'oc', name: 'Sinitic', sub: 'Old Chinese *p → Mandarin' },
+		{ id: 'pj', name: 'Japonic', sub: 'Proto-Japonic *p → Japanese' }
+	];
 
-	const languages: Language[] = [
+	const flows: Flow[] = [
+		// ─── Indo-European
+		{
+			id: 'pie',
+			family: 'pie',
+			label: 'PIE *p',
+			lane: 0,
+			start: -3500,
+			end: -2500,
+			fadeFrom: -5000,
+			stops: [
+				{ year: -5000, phoneme: 'p', opacity: 0 },
+				{ year: -3500, phoneme: 'p', opacity: 1 },
+				{ year: -2500, phoneme: 'p', opacity: 1 }
+			],
+			evidence: [{ year: -3500, label: 'PIE *ph₂tḗr', detail: 'reconstructed' }],
+			status: 'alive'
+		},
 		{
 			id: 'celtic',
-			name: 'Celtic',
-			family: 'Indo-European → Celtic',
-			summary: '*p > ∅',
-			description:
-				'Proto-Indo-European *p was lost very early in the Celtic branch — one of the most striking sound losses in IE. Latin pater corresponds to Old Irish athair "father", and Latin piscis to Old Irish íasc "fish".',
-			branches: [
-				{
-					form: '*p',
-					terminalForm: '∅',
-					track: 0,
-					start: -2000,
-					transition: [-1500, -800],
-					end: 2025,
-					status: 'dead',
-					approxStart: true,
-					evidence: [
-						{ year: -2000, label: 'PIE *ph₂tḗr', detail: 'reconstructed' },
-						{ year: -500, label: 'Gaulish atir', detail: '/p/ already gone' },
-						{ year: 800, label: 'Old Irish athair', detail: 'no /p/' }
-					]
-				}
-			]
+			family: 'pie',
+			label: 'Celtic',
+			condition: '*p > ∅',
+			parent: { id: 'pie', year: -2500 },
+			lane: -2,
+			start: -2500,
+			end: 2025,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: -1500, phoneme: 'p' },
+				{ year: -800, phoneme: '∅' },
+				{ year: 2025, phoneme: '∅' }
+			],
+			evidence: [
+				{ year: -500, label: 'Gaulish atir', detail: '/p/ already gone' },
+				{ year: 800, label: 'OIr. athair "father"', detail: 'cf. Lat. pater' }
+			],
+			status: 'dead',
+			note: 'PIE *p disappeared early in Proto-Celtic.'
+		},
+		{
+			id: 'germanic',
+			family: 'pie',
+			label: 'Germanic',
+			condition: '*p > *f (Grimm)',
+			parent: { id: 'pie', year: -2500 },
+			lane: -1,
+			start: -2500,
+			end: 2025,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: -500, phoneme: 'p' },
+				{ year: 100, phoneme: 'f' },
+				{ year: 2025, phoneme: 'f' }
+			],
+			evidence: [
+				{ year: -200, label: "Grimm's Law", detail: 'PIE *p → PGmc *f' },
+				{ year: 800, label: 'OE fæder', detail: '< PGmc *fader' }
+			],
+			status: 'dead',
+			note: 'Inherited *p turned to *f via Grimm. Modern /p/ in Germanic comes mostly from loans and other sources.'
+		},
+		{
+			id: 'italic',
+			family: 'pie',
+			label: 'Italic / Romance',
+			parent: { id: 'pie', year: -2500 },
+			lane: 0,
+			start: -2500,
+			end: 2025,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: 2025, phoneme: 'p' }
+			],
+			evidence: [
+				{ year: -700, label: 'Old Latin', detail: '/p/ preserved' },
+				{ year: 1300, label: 'Romance daughters', detail: '/p/ kept across the board' }
+			],
+			status: 'alive'
+		},
+		{
+			id: 'hellenic',
+			family: 'pie',
+			label: 'Greek',
+			parent: { id: 'pie', year: -2500 },
+			lane: 1,
+			start: -2500,
+			end: 2025,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: 2025, phoneme: 'p' }
+			],
+			evidence: [
+				{ year: -1450, label: 'Linear B pa-te-re', detail: 'Mycenaean' },
+				{ year: -700, label: 'Homeric πατήρ', detail: '' }
+			],
+			status: 'alive'
+		},
+		{
+			id: 'iir',
+			family: 'pie',
+			label: 'Indo-Iranian',
+			parent: { id: 'pie', year: -2500 },
+			lane: 2,
+			start: -2500,
+			end: 2025,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: 2025, phoneme: 'p' }
+			],
+			evidence: [{ year: -1500, label: 'Vedic pitár', detail: '' }],
+			status: 'alive'
+		},
+
+		// ─── Semitic
+		{
+			id: 'psem',
+			family: 'psem',
+			label: 'Proto-Semitic *p',
+			lane: 0,
+			start: -3500,
+			end: -2500,
+			fadeFrom: -5000,
+			stops: [
+				{ year: -5000, phoneme: 'p', opacity: 0 },
+				{ year: -3500, phoneme: 'p', opacity: 1 },
+				{ year: -2500, phoneme: 'p', opacity: 1 }
+			],
+			evidence: [{ year: -3500, label: 'PSem *p', detail: 'reconstructed' }],
+			status: 'alive'
 		},
 		{
 			id: 'arabic',
-			name: 'Arabic',
-			family: 'Afro-Asiatic → Semitic',
-			summary: '*p > /f/',
-			description:
-				'Proto-Semitic *p merged into /f/ on the way to Arabic. Sister languages preserve traces — Hebrew has [p]~[f] allophony — but Arabic has only /f/ in inherited words, and borrows /p/ as /b/ or /f/.',
-			branches: [
-				{
-					form: '*p',
-					terminalForm: '/f/',
-					track: 0,
-					start: -2000,
-					transition: [-1500, -500],
-					end: 2025,
-					status: 'dead',
-					approxStart: true,
-					evidence: [
-						{ year: -2000, label: 'Proto-Semitic *p', detail: 'reconstructed' },
-						{ year: -200, label: 'Old Arabic inscriptions', detail: 'no /p/ orthographically' },
-						{ year: 700, label: 'Classical Arabic /f/', detail: 'fully merged' }
-					]
-				}
-			]
+			family: 'psem',
+			label: 'Arabic',
+			condition: '*p > /f/',
+			parent: { id: 'psem', year: -2500 },
+			lane: -1,
+			start: -2500,
+			end: 2025,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: -1500, phoneme: 'p' },
+				{ year: -200, phoneme: 'f' },
+				{ year: 2025, phoneme: 'f' }
+			],
+			evidence: [
+				{ year: -200, label: 'Old Arabic inscr.', detail: '' },
+				{ year: 700, label: 'Classical Arabic', detail: 'no /p/ in inherited words' }
+			],
+			status: 'dead'
 		},
 		{
-			id: 'chinese',
-			name: 'Chinese',
-			family: 'Sino-Tibetan',
-			summary: '*p > /p/ (heavy lab.); *p > /f/ (light lab.)',
-			description:
-				'In late Middle Chinese, the labial initials split (輕唇音 vs 重唇音): /p, pʰ, b/ became /f, fʰ, v/ before specific medial-vowel combinations, while the rest preserved /p/. Mandarin still has plenty of /p/, but a large vocabulary "leaked" out into /f/.',
-			branches: [
-				{
-					form: 'OC *p',
-					track: 0,
-					start: -1200,
-					end: 900,
-					status: 'alive',
-					approxStart: true,
-					evidence: [
-						{ year: -1000, label: 'Old Chinese *p-', detail: 'reconstructed' },
-						{ year: 600, label: 'Qieyun 切韻', detail: 'still /p/ in all environments' }
-					]
-				},
-				{
-					form: 'MC /p/',
-					track: 0,
-					parent: 0,
-					splitAt: 900,
-					start: 900,
-					end: 2025,
-					status: 'alive',
-					note: 'heavy labial 重唇音 — /p/ kept',
-					evidence: [{ year: 1700, label: '北 /pei̯/', detail: '/p/ preserved' }]
-				},
-				{
-					form: 'MC /p/',
-					terminalForm: '/f/',
-					condition: '_jɨ, _ju, _jo',
-					track: 1,
-					parent: 0,
-					splitAt: 900,
-					start: 900,
-					transition: [900, 1300],
-					end: 2025,
-					status: 'dead',
-					note: 'light labial 輕唇音 — labiodentalization',
-					evidence: [
-						{ year: 1100, label: '韻鏡', detail: '輕唇音 split codified' },
-						{ year: 1324, label: '中原音韻', detail: '/f/ established' },
-						{ year: 2025, label: '飛 /feɪ̯/', detail: 'modern /f/ < MC *pjɨj' }
-					]
-				}
-			]
+			id: 'hebrew',
+			family: 'psem',
+			label: 'Hebrew',
+			parent: { id: 'psem', year: -2500 },
+			lane: 0,
+			start: -2500,
+			end: 2025,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: 2025, phoneme: 'p' }
+			],
+			evidence: [{ year: -800, label: 'Biblical Hebrew', detail: '[p]~[f] allophony' }],
+			status: 'alive'
 		},
 		{
-			id: 'japanese',
-			name: 'Japanese',
-			family: 'Japonic',
-			summary: '*p > /ɸ/ > /h, ç, ɸ, p/',
-			description:
-				'Old Japanese /p/ weakened to /ɸ/ by the late Heian period, then split by following vowel. Inherited /p/ survives only after geminates and moraic nasals (e.g. 切符 kippu, 散歩 sanpo). /p/ then re-entered the language wholesale through Portuguese and modern loanwords.',
-			branches: [
-				{
-					form: 'OJ /p/',
-					track: 0,
-					start: 600,
-					end: 800,
-					status: 'alive',
-					approxStart: true,
-					evidence: [{ year: 720, label: "Man'yōgana", detail: 'OJ /p/ as [p]' }]
-				},
-				{
-					form: '/p/',
-					condition: '{Q,N}_V',
-					track: 0,
-					parent: 0,
-					splitAt: 800,
-					start: 800,
-					end: 2025,
-					status: 'alive',
-					note: 'preserved after geminate or nasal',
-					evidence: [{ year: 2025, label: 'kippu, sanpo', detail: '/p/ kept' }]
-				},
-				{
-					form: '/ɸ/',
-					terminalForm: '/h/',
-					condition: '_{a,o,e}',
-					track: 1,
-					parent: 0,
-					splitAt: 800,
-					start: 800,
-					transition: [1400, 1700],
-					end: 2025,
-					status: 'dead',
-					evidence: [
-						{ year: 1100, label: 'Heian texts', detail: '/ɸ/ in all V_V positions' },
-						{ year: 1603, label: 'Nippo Jisho', detail: '"f" still attested' },
-						{ year: 1900, label: 'mJ /h/', detail: 'fully /h/ before /a, e, o/' }
-					]
-				},
-				{
-					form: '/ɸ/',
-					terminalForm: '/ç/',
-					condition: '_i',
-					track: 2,
-					parent: 0,
-					splitAt: 800,
-					start: 800,
-					transition: [1400, 1700],
-					end: 2025,
-					status: 'dead'
-				},
-				{
-					form: '/ɸ/',
-					condition: '_u',
-					track: 3,
-					parent: 0,
-					splitAt: 800,
-					start: 800,
-					end: 2025,
-					status: 'dying',
-					note: '/ɸu/ holds out, marginal'
-				},
-				{
-					form: '/p/',
-					condition: 'loans',
-					track: 4,
-					start: 1543,
-					end: 2025,
-					status: 'reborn',
-					note: 'Portuguese, then Dutch, English…',
-					evidence: [
-						{ year: 1543, label: 'Portuguese arrives', detail: 'pan, tabako' },
-						{ year: 1900, label: 'English loans', detail: 'pen, computer' }
-					]
-				}
-			]
+			id: 'akkadian',
+			family: 'psem',
+			label: 'Akkadian',
+			parent: { id: 'psem', year: -2500 },
+			lane: 1,
+			start: -2500,
+			end: 100,
+			stops: [
+				{ year: -2500, phoneme: 'p' },
+				{ year: 100, phoneme: 'p' }
+			],
+			evidence: [{ year: -2300, label: 'Old Akkadian', detail: '/p/ preserved' }],
+			status: 'alive',
+			note: 'Language died ~100 CE but /p/ was preserved throughout its history.'
+		},
+
+		// ─── Sinitic
+		{
+			id: 'oc',
+			family: 'oc',
+			label: 'Old Chinese *p',
+			lane: 0,
+			start: -1200,
+			end: 900,
+			fadeFrom: -2500,
+			stops: [
+				{ year: -2500, phoneme: 'p', opacity: 0 },
+				{ year: -1200, phoneme: 'p', opacity: 1 },
+				{ year: 900, phoneme: 'p', opacity: 1 }
+			],
+			evidence: [
+				{ year: -1000, label: 'OBI / Bronzeware', detail: 'OC *p reconstructed' },
+				{ year: 600, label: 'Qieyun 切韻', detail: '/p/ in all environments' }
+			],
+			status: 'alive'
+		},
+		{
+			id: 'oc-heavy',
+			family: 'oc',
+			label: '重唇音',
+			condition: 'elsewhere — /p/ kept',
+			parent: { id: 'oc', year: 900 },
+			lane: -1,
+			start: 900,
+			end: 2025,
+			stops: [
+				{ year: 900, phoneme: 'p' },
+				{ year: 2025, phoneme: 'p' }
+			],
+			evidence: [{ year: 2025, label: '北 běi', detail: '/p/ preserved' }],
+			status: 'alive'
+		},
+		{
+			id: 'oc-light',
+			family: 'oc',
+			label: '輕唇音',
+			condition: '_jɨ, _ju, _jo — /p/ > /f/',
+			parent: { id: 'oc', year: 900 },
+			lane: 1,
+			start: 900,
+			end: 2025,
+			stops: [
+				{ year: 900, phoneme: 'p' },
+				{ year: 1300, phoneme: 'f' },
+				{ year: 2025, phoneme: 'f' }
+			],
+			evidence: [
+				{ year: 1100, label: '韻鏡 Yùnjìng', detail: '輕唇音 split codified' },
+				{ year: 1324, label: '中原音韻', detail: '/f/ established' },
+				{ year: 2025, label: '飛 fēi, 風 fēng', detail: 'modern /f/ < MC *pjV' }
+			],
+			status: 'dead',
+			note: 'Late Middle Chinese labiodentalization.'
+		},
+
+		// ─── Japonic
+		{
+			id: 'pj',
+			family: 'pj',
+			label: 'Proto-Japonic *p',
+			lane: 0,
+			start: -300,
+			end: 600,
+			fadeFrom: -1500,
+			stops: [
+				{ year: -1500, phoneme: 'p', opacity: 0 },
+				{ year: -300, phoneme: 'p', opacity: 1 },
+				{ year: 600, phoneme: 'p', opacity: 1 }
+			],
+			evidence: [{ year: -300, label: 'PJ *p', detail: 'reconstructed' }],
+			status: 'alive'
+		},
+		{
+			id: 'oj',
+			family: 'pj',
+			label: 'Old Japanese',
+			parent: { id: 'pj', year: 600 },
+			lane: 0,
+			start: 600,
+			end: 800,
+			stops: [
+				{ year: 600, phoneme: 'p' },
+				{ year: 800, phoneme: 'p' }
+			],
+			evidence: [{ year: 720, label: "Man'yōgana", detail: '/p/ likely [p]' }],
+			status: 'alive'
+		},
+		{
+			id: 'pj-qn',
+			family: 'pj',
+			label: '{Q,N}_V',
+			condition: 'after geminate / nasal — /p/ kept',
+			parent: { id: 'oj', year: 800 },
+			lane: -2,
+			start: 800,
+			end: 2025,
+			stops: [
+				{ year: 800, phoneme: 'p' },
+				{ year: 2025, phoneme: 'p' }
+			],
+			evidence: [{ year: 2025, label: '切符, 散歩', detail: 'kippu, sanpo' }],
+			status: 'alive'
+		},
+		{
+			id: 'pj-aoe',
+			family: 'pj',
+			label: 'V_V / _{a,o,e}',
+			condition: '/ɸ/ > /h/',
+			parent: { id: 'oj', year: 800 },
+			lane: -1,
+			start: 800,
+			end: 2025,
+			stops: [
+				{ year: 800, phoneme: 'ɸ' },
+				{ year: 1400, phoneme: 'ɸ' },
+				{ year: 1700, phoneme: 'h' },
+				{ year: 2025, phoneme: 'h' }
+			],
+			evidence: [
+				{ year: 1100, label: 'Heian /ɸ/', detail: '' },
+				{ year: 1603, label: 'Nippo Jisho "f"', detail: '/ɸ/ still attested' },
+				{ year: 1900, label: 'modern /h/', detail: '' }
+			],
+			status: 'dead'
+		},
+		{
+			id: 'pj-i',
+			family: 'pj',
+			label: 'V_V / _i',
+			condition: '/ɸ/ > /ç/',
+			parent: { id: 'oj', year: 800 },
+			lane: 1,
+			start: 800,
+			end: 2025,
+			stops: [
+				{ year: 800, phoneme: 'ɸ' },
+				{ year: 1700, phoneme: 'ɸ' },
+				{ year: 1900, phoneme: 'ç' },
+				{ year: 2025, phoneme: 'ç' }
+			],
+			evidence: [],
+			status: 'dead'
+		},
+		{
+			id: 'pj-u',
+			family: 'pj',
+			label: 'V_V / _u',
+			condition: '/ɸ/ — marginal',
+			parent: { id: 'oj', year: 800 },
+			lane: 2,
+			start: 800,
+			end: 2025,
+			stops: [
+				{ year: 800, phoneme: 'ɸ' },
+				{ year: 2025, phoneme: 'ɸ' }
+			],
+			evidence: [],
+			status: 'dying'
+		},
+		{
+			id: 'pj-loan',
+			family: 'pj',
+			label: 'Loanwords',
+			condition: 'Portuguese, Dutch, English — /p/ reborn',
+			lane: 3,
+			start: 1543,
+			end: 2025,
+			fadeFrom: 1400,
+			stops: [
+				{ year: 1400, phoneme: 'p', opacity: 0 },
+				{ year: 1543, phoneme: 'p', opacity: 1 },
+				{ year: 2025, phoneme: 'p', opacity: 1 }
+			],
+			evidence: [
+				{ year: 1543, label: 'Portuguese: pan, tabako', detail: '' },
+				{ year: 1900, label: 'English: pen, computer', detail: '' }
+			],
+			status: 'reborn'
 		}
 	];
 
-	// ─── Layout constants
-	const labelWidth = 170;
-	const plotWidth = 880;
-	const trackHeight = 26;
-	const trackGap = 8;
-	const rowPad = 14;
-	const headerHeight = 50;
-	const footerHeight = 30;
+	// ─── Layout
 
-	const yearSpan = END - START;
+	const flowById = new Map(flows.map((f) => [f.id, f]));
 
-	function x(year: number): number {
-		return labelWidth + ((year - START) / yearSpan) * plotWidth;
-	}
+	const TIME_START = -3500;
+	const TIME_END = 2025;
+	const yearSpan = TIME_END - TIME_START;
 
-	function trackY(rowTop: number, track: number): number {
-		return rowTop + rowPad + track * (trackHeight + trackGap) + trackHeight / 2;
-	}
+	const bandHeight = 28;
+	const laneGap = 6;
+	const familyHeaderH = 38;
+	const familyGap = 24;
+	const plotPadX = 24;
 
-	const rowOffsets = $derived.by(() => {
-		const offsets: number[] = [];
-		let y = headerHeight;
-		for (const lang of languages) {
-			offsets.push(y);
-			const trackCount = Math.max(...lang.branches.map((b) => b.track)) + 1;
-			y += rowPad * 2 + trackCount * (trackHeight + trackGap) - trackGap;
+	// Per family: compute lane range and Y offset
+	const familyLayout = $derived.by(() => {
+		const out: Record<string, { lanes: number[]; yTop: number; yBottom: number; yMid: number }> =
+			{} as never;
+		let y = 0;
+		for (const fam of families) {
+			const famFlows = flows.filter((f) => f.family === fam.id);
+			const lanes = [...new Set(famFlows.map((f) => f.lane))].sort((a, b) => a - b);
+			const minLane = Math.min(...lanes);
+			const maxLane = Math.max(...lanes);
+			const laneCount = maxLane - minLane + 1; // accounts for fractional via offsets
+			const yTop = y + familyHeaderH;
+			const yBottom = yTop + (maxLane - minLane) * (bandHeight + laneGap) + bandHeight;
+			const yMid = (yTop + yBottom) / 2;
+			out[fam.id] = { lanes, yTop, yBottom, yMid };
+			y = yBottom + familyGap;
+			void laneCount;
 		}
-		return offsets;
+		return out;
 	});
 
 	const totalHeight = $derived.by(() => {
-		const last = rowOffsets.at(-1) ?? headerHeight;
-		const lastLang = languages.at(-1)!;
-		const trackCount = Math.max(...lastLang.branches.map((b) => b.track)) + 1;
-		const rowH = rowPad * 2 + trackCount * (trackHeight + trackGap) - trackGap;
-		return last + rowH + footerHeight;
+		const lastFam = families.at(-1)!;
+		return familyLayout[lastFam.id].yBottom + 36;
 	});
 
-	const totalWidth = labelWidth + plotWidth + 16;
+	function flowY(flow: Flow): number {
+		const layout = familyLayout[flow.family];
+		const minLane = Math.min(...layout.lanes);
+		return layout.yTop + (flow.lane - minLane) * (bandHeight + laneGap) + bandHeight / 2;
+	}
 
-	const ticks = [-2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000];
+	// ─── Pan/Zoom
+
+	let zoom = $state(1);
+	const basePlotWidth = 1400;
+	const plotWidth = $derived(basePlotWidth * zoom);
+
+	function x(year: number): number {
+		return plotPadX + ((year - TIME_START) / yearSpan) * plotWidth;
+	}
+
+	function unX(px: number): number {
+		return TIME_START + ((px - plotPadX) / plotWidth) * yearSpan;
+	}
+
+	const totalWidth = $derived(plotPadX * 2 + plotWidth);
+
+	const ticks = [-3500, -3000, -2500, -2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000];
 
 	function fmtYear(y: number): string {
 		if (y === 0) return '0';
 		return y < 0 ? `${-y} BCE` : `${y} CE`;
 	}
 
-	let hovered: { branch: Branch; lang: Language } | null = $state(null);
-	let hoveredEvidence: Evidence | null = $state(null);
+	// ─── Ribbon path: draws a fork-in curve from parent (if any) then a horizontal band
+
+	function ribbonPath(flow: Flow): string {
+		const yMid = flowY(flow);
+		const yTop = yMid - bandHeight / 2;
+		const yBot = yMid + bandHeight / 2;
+		const startYear = flow.fadeFrom ?? flow.start;
+		const xStart = x(startYear);
+		const xEnd = x(flow.end);
+
+		if (flow.parent) {
+			const parent = flowById.get(flow.parent.id)!;
+			const pY = flowY(parent);
+			const pYTop = pY - bandHeight / 2;
+			const pYBot = pY + bandHeight / 2;
+			const xSplit = x(flow.parent.year);
+			const forkLen = Math.min(120 * zoom, (xEnd - xSplit) * 0.4);
+			const xForkEnd = xSplit + forkLen;
+			const c1 = xSplit + forkLen * 0.5;
+			const c2 = xForkEnd - forkLen * 0.5;
+
+			return [
+				`M ${xSplit} ${pYTop}`,
+				`C ${c1} ${pYTop}, ${c2} ${yTop}, ${xForkEnd} ${yTop}`,
+				`L ${xEnd} ${yTop}`,
+				`L ${xEnd} ${yBot}`,
+				`L ${xForkEnd} ${yBot}`,
+				`C ${c2} ${yBot}, ${c1} ${pYBot}, ${xSplit} ${pYBot}`,
+				`Z`
+			].join(' ');
+		}
+
+		return [
+			`M ${xStart} ${yTop}`,
+			`L ${xEnd} ${yTop}`,
+			`L ${xEnd} ${yBot}`,
+			`L ${xStart} ${yBot}`,
+			`Z`
+		].join(' ');
+	}
+
+	// ─── Hover state
+
+	let hovered: Flow | null = $state(null);
+	let hoveredEv: { ev: Evidence; flow: Flow } | null = $state(null);
+
+	function colorOf(phoneme: string): string {
+		return PHONEME_COLOR[phoneme] ?? '#999';
+	}
+
+	// Distinct phonemes for legend
+	const phonemesInUse = $derived.by(() => {
+		const set = new Set<string>();
+		for (const f of flows) for (const s of f.stops) set.add(s.phoneme);
+		return [...set];
+	});
+
+	function setZoom(z: number) {
+		zoom = Math.max(0.5, Math.min(8, z));
+	}
 </script>
 
 <figure>
-	<div class="scroll">
-		<svg
-			viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-			width={totalWidth}
-			role="img"
-			aria-label="Historical timeline of /p/ loss across languages"
-		>
-			<defs>
-				<linearGradient id="trans" x1="0" x2="1" y1="0" y2="0">
-					<stop offset="0%" stop-color="var(--p-alive)" />
-					<stop offset="100%" stop-color="var(--p-dead)" />
-				</linearGradient>
-				<pattern
-					id="extrapolated"
-					patternUnits="userSpaceOnUse"
-					width="8"
-					height="8"
-					patternTransform="rotate(45)"
+	<div class="controls">
+		<div class="zoom">
+			<button onclick={() => setZoom(zoom / 1.5)} aria-label="Zoom out">−</button>
+			<span class="z">{Math.round(zoom * 100)}%</span>
+			<button onclick={() => setZoom(zoom * 1.5)} aria-label="Zoom in">+</button>
+			<button class="reset" onclick={() => setZoom(1)}>reset</button>
+		</div>
+		<div class="legend">
+			{#each phonemesInUse as p (p)}
+				<span class="sw" style:background={colorOf(p)}></span>
+				<span class="sw-label">{p === '∅' ? '∅' : `/${p}/`}</span>
+			{/each}
+		</div>
+	</div>
+
+	<div class="frame">
+		<aside class="labels" style:height={`${totalHeight}px`}>
+			{#each families as fam (fam.id)}
+				{@const layout = familyLayout[fam.id]}
+				<div
+					class="fam-label"
+					style:top={`${layout.yTop - familyHeaderH + 6}px`}
+					style:height={`${layout.yBottom - layout.yTop + familyHeaderH}px`}
 				>
-					<rect width="8" height="8" fill="var(--bg-soft)" />
-					<rect width="2" height="8" fill="var(--p-alive)" opacity="0.4" />
-				</pattern>
-			</defs>
+					<div class="fam-name">{fam.name}</div>
+					<div class="fam-sub">{fam.sub}</div>
+				</div>
+			{/each}
+		</aside>
 
-			<!-- year ticks -->
-			<g class="axis">
-				{#each ticks as t (t)}
-					<line x1={x(t)} x2={x(t)} y1={headerHeight - 8} y2={totalHeight - footerHeight + 4} />
-					<text x={x(t)} y={headerHeight - 16} text-anchor="middle">{fmtYear(t)}</text>
-				{/each}
-				<line
-					x1={labelWidth}
-					x2={labelWidth + plotWidth}
-					y1={headerHeight - 8}
-					y2={headerHeight - 8}
-					class="axis-baseline"
-				/>
-			</g>
+		<div class="scroll">
+			<svg
+				viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+				width={totalWidth}
+				height={totalHeight}
+				role="img"
+				aria-label="Phonological flow diagram of /p/ loss across language families"
+			>
+				<defs>
+					{#each flows as flow (flow.id)}
+						{@const startYear = flow.fadeFrom ?? flow.start}
+						<linearGradient
+							id={`grad-${flow.id}`}
+							gradientUnits="userSpaceOnUse"
+							x1={x(startYear)}
+							y1={0}
+							x2={x(flow.end)}
+							y2={0}
+						>
+							{#each flow.stops as stop, si (si)}
+								{@const span = x(flow.end) - x(startYear)}
+								{@const off = span > 0 ? ((x(stop.year) - x(startYear)) / span) * 100 : 0}
+								<stop
+									offset={`${Math.max(0, Math.min(100, off))}%`}
+									stop-color={colorOf(stop.phoneme)}
+									stop-opacity={stop.opacity ?? 1}
+								/>
+							{/each}
+						</linearGradient>
+					{/each}
+				</defs>
 
-			{#each languages as lang, li (lang.id)}
-				{@const yTop = rowOffsets[li]}
-				{@const trackCount = Math.max(...lang.branches.map((b) => b.track)) + 1}
-				{@const rowH = rowPad * 2 + trackCount * (trackHeight + trackGap) - trackGap}
-
-				<!-- row separator -->
-				{#if li > 0}
-					<line
-						x1={0}
-						x2={totalWidth}
-						y1={yTop}
-						y2={yTop}
-						stroke="var(--rule)"
-						stroke-width="1"
+				<!-- Family bands (subtle background) -->
+				{#each families as fam, fi (fam.id)}
+					{@const layout = familyLayout[fam.id]}
+					<rect
+						x={0}
+						y={layout.yTop - familyHeaderH + 6}
+						width={totalWidth}
+						height={layout.yBottom - layout.yTop + familyHeaderH - 6}
+						fill={fi % 2 === 0 ? '#fbf8f0' : '#f7f2e4'}
+						opacity="0.5"
 					/>
-				{/if}
+				{/each}
 
-				<!-- language label -->
-				<g class="label">
-					<text x={14} y={yTop + 22} class="lang-name">{lang.name}</text>
-					<text x={14} y={yTop + 38} class="lang-family">{lang.family}</text>
-					<text x={14} y={yTop + 54} class="lang-summary">{lang.summary}</text>
+				<!-- Year grid -->
+				<g class="axis">
+					{#each ticks as t (t)}
+						<line x1={x(t)} x2={x(t)} y1={0} y2={totalHeight - 24} />
+						<text x={x(t)} y={totalHeight - 8} text-anchor="middle">{fmtYear(t)}</text>
+					{/each}
+					<line x1={x(0)} x2={x(0)} y1={0} y2={totalHeight - 24} class="zero" />
 				</g>
 
-				<!-- branch connectors (curves from parent split point) -->
-				{#each lang.branches as b (b.track + '-' + b.start)}
-					{#if b.parent !== undefined && b.splitAt !== undefined}
-						{@const px = x(b.splitAt)}
-						{@const py = trackY(yTop, b.parent)}
-						{@const cy = trackY(yTop, b.track)}
-						{@const cx = px}
+				<!-- Ribbons -->
+				{#each flows as flow (flow.id)}
+					<g
+						class="flow"
+						class:hovered={hovered === flow}
+						onmouseenter={() => (hovered = flow)}
+						onmouseleave={() => (hovered = null)}
+						role="button"
+						tabindex="0"
+					>
+						<path d={ribbonPath(flow)} fill={`url(#grad-${flow.id})`} />
+						<!-- top/bottom border for definition -->
 						<path
-							class="connector"
-							d={`M ${px} ${py} C ${cx + 30} ${py} ${cx} ${cy} ${cx + 30} ${cy}`}
+							d={ribbonPath(flow)}
 							fill="none"
+							stroke="rgba(0,0,0,0.18)"
+							stroke-width="0.75"
 						/>
+					</g>
+				{/each}
+
+				<!-- Flow labels (placed at start of each flow) -->
+				{#each flows as flow (flow.id)}
+					{@const yMid = flowY(flow)}
+					{@const startYear = flow.parent ? flow.parent.year + 60 : flow.fadeFrom ?? flow.start}
+					{#if !flow.parent || flow.label}
+						<text
+							x={flow.parent ? x(flow.parent.year) + 70 * zoom : x(startYear) + 8}
+							y={yMid + 4}
+							class="flow-label"
+							pointer-events="none">{flow.label}</text
+						>
 					{/if}
 				{/each}
 
-				<!-- branch bands -->
-				{#each lang.branches as b (b.track + '-' + b.start)}
-					{@const by = trackY(yTop, b.track) - trackHeight / 2}
-					{@const segStart = b.parent !== undefined ? Math.max(b.start, b.splitAt ?? b.start) : b.start}
-					{@const aliveEnd = b.transition ? b.transition[0] : b.end}
-					{@const deadStart = b.transition ? b.transition[1] : b.end}
-
-					<!-- alive segment (warm) -->
-					{#if aliveEnd > segStart}
-						<rect
-							x={x(segStart)}
-							y={by}
-							width={Math.max(2, x(aliveEnd) - x(segStart))}
-							height={trackHeight}
-							rx="4"
-							class="band-alive"
-							class:approx={b.approxStart && segStart === b.start}
-							onmouseenter={() => (hovered = { branch: b, lang })}
-							onmouseleave={() => (hovered = null)}
-							role="img"
-							aria-label={`${lang.name} ${b.form}`}
-						/>
-					{/if}
-
-					<!-- transition gradient -->
-					{#if b.transition}
-						<rect
-							x={x(b.transition[0])}
-							y={by}
-							width={Math.max(2, x(b.transition[1]) - x(b.transition[0]))}
-							height={trackHeight}
-							rx="4"
-							fill="url(#trans)"
-							class="band-trans"
-							role="img"
-							aria-label={`${lang.name} ${b.form} transitioning to ${b.terminalForm ?? '∅'}`}
-							onmouseenter={() => (hovered = { branch: b, lang })}
-							onmouseleave={() => (hovered = null)}
-						/>
-					{/if}
-
-					<!-- dead/post segment (cool) -->
-					{#if b.transition && b.end > deadStart}
-						<rect
-							x={x(deadStart)}
-							y={by}
-							width={Math.max(2, x(b.end) - x(deadStart))}
-							height={trackHeight}
-							rx="4"
-							class="band-dead"
-							class:approx={b.approxEnd}
-							role="img"
-							aria-label={`${lang.name} ${b.terminalForm ?? 'lost'}`}
-							onmouseenter={() => (hovered = { branch: b, lang })}
-							onmouseleave={() => (hovered = null)}
-						/>
-					{/if}
-
-					<!-- form label inside band -->
-					<text
-						x={x(segStart) + 8}
-						y={by + trackHeight / 2 + 4}
-						class="band-form"
-						pointer-events="none">{b.form}</text
-					>
-
-					{#if b.terminalForm}
-						<text
-							x={x(b.end) - 8}
-							y={by + trackHeight / 2 + 4}
-							class="band-form band-form-end"
-							text-anchor="end"
-							pointer-events="none">→ {b.terminalForm}</text
-						>
-					{/if}
-
-					<!-- end marker -->
-					{#if b.status === 'alive' || b.status === 'reborn'}
-						<text
-							x={x(b.end) + 4}
-							y={by + trackHeight / 2 + 5}
-							class="end-marker alive"
-							pointer-events="none">●</text
-						>
-					{:else if b.status === 'dying'}
-						<text
-							x={x(b.end) + 4}
-							y={by + trackHeight / 2 + 5}
-							class="end-marker dying"
-							pointer-events="none">◐</text
-						>
+				<!-- End markers -->
+				{#each flows as flow (flow.id)}
+					{@const yMid = flowY(flow)}
+					{@const xe = x(flow.end)}
+					{#if flow.status === 'alive' || flow.status === 'reborn'}
+						<circle cx={xe + 6} cy={yMid} r="4" class="m-alive" />
+					{:else if flow.status === 'dying'}
+						<circle cx={xe + 6} cy={yMid} r="4" class="m-dying" />
 					{:else}
-						<text
-							x={x(b.end) + 4}
-							y={by + trackHeight / 2 + 5}
-							class="end-marker dead"
-							pointer-events="none">✕</text
-						>
+						<g>
+							<line x1={xe + 3} y1={yMid - 4} x2={xe + 9} y2={yMid + 4} class="m-dead" />
+							<line x1={xe + 3} y1={yMid + 4} x2={xe + 9} y2={yMid - 4} class="m-dead" />
+						</g>
 					{/if}
+				{/each}
 
-					<!-- condition tag -->
-					{#if b.condition}
-						<text x={x(segStart) + 8} y={by - 4} class="cond" pointer-events="none"
-							>/{b.condition}/</text
-						>
-					{/if}
-
-					<!-- evidence dots -->
-					{#if b.evidence}
-						{#each b.evidence as ev (ev.year + ev.label)}
+				<!-- Evidence dots -->
+				{#each flows as flow (flow.id)}
+					{#if flow.evidence}
+						{@const yMid = flowY(flow)}
+						{#each flow.evidence as ev (ev.year + ev.label)}
 							<g
 								class="ev"
-								onmouseenter={() => (hoveredEvidence = ev)}
-								onmouseleave={() => (hoveredEvidence = null)}
+								onmouseenter={() => (hoveredEv = { ev, flow })}
+								onmouseleave={() => (hoveredEv = null)}
 								role="button"
 								tabindex="0"
 							>
-								<circle cx={x(ev.year)} cy={by + trackHeight / 2} r="4" />
+								<circle cx={x(ev.year)} cy={yMid} r="4" />
 								<title>{fmtYear(ev.year)} — {ev.label}{ev.detail
 										? ` (${ev.detail})`
 										: ''}</title>
@@ -491,239 +709,283 @@
 						{/each}
 					{/if}
 				{/each}
-			{/each}
-		</svg>
+			</svg>
+		</div>
 	</div>
 
-	{#if hovered}
-		<div class="tip">
-			<strong>{hovered.lang.name}</strong> · <span class="mono">{hovered.branch.form}</span>
-			{#if hovered.branch.terminalForm}
-				<span class="mono"> → {hovered.branch.terminalForm}</span>
+	<!-- Detail panel -->
+	<div class="detail" class:show={!!hovered || !!hoveredEv}>
+		{#if hovered}
+			<div class="dt-head">
+				<strong>{hovered.label}</strong>
+				{#if hovered.condition}<span class="dt-cond"> / {hovered.condition} /</span>{/if}
+			</div>
+			<div class="dt-meta">
+				{families.find((f) => f.id === hovered!.family)!.name} ·
+				<span class="mono">{fmtYear(hovered.start)} – {fmtYear(hovered.end)}</span> ·
+				<span class={`st st-${hovered.status}`}>{hovered.status}</span>
+			</div>
+			{#if hovered.note}<div class="dt-note">{hovered.note}</div>{/if}
+			{#if hovered.evidence && hovered.evidence.length}
+				<ul class="dt-ev">
+					{#each hovered.evidence as ev (ev.year + ev.label)}
+						<li>
+							<span class="mono">{fmtYear(ev.year)}</span> — {ev.label}{#if ev.detail}
+								<span class="dt-detail"> ({ev.detail})</span>{/if}
+						</li>
+					{/each}
+				</ul>
 			{/if}
-			{#if hovered.branch.condition}<span class="cond-inline"
-					>/ {hovered.branch.condition} /</span
-				>{/if}
-			{#if hovered.branch.note}<div class="tip-note">{hovered.branch.note}</div>{/if}
-		</div>
-	{:else if hoveredEvidence}
-		<div class="tip">
-			<strong>{fmtYear(hoveredEvidence.year)}</strong> — {hoveredEvidence.label}
-			{#if hoveredEvidence.detail}<div class="tip-note">{hoveredEvidence.detail}</div>{/if}
-		</div>
-	{/if}
-
-	<figcaption>
-		<ul class="legend">
-			<li><span class="sw sw-alive"></span> /p/ retained</li>
-			<li><span class="sw sw-trans"></span> transition (interpolated)</li>
-			<li><span class="sw sw-dead"></span> /p/ lost</li>
-			<li><span class="marker alive">●</span> still attested</li>
-			<li><span class="marker dying">◐</span> marginal/dying</li>
-			<li><span class="marker dead">✕</span> lost</li>
-			<li><span class="ev-dot"></span> evidence point</li>
-		</ul>
-	</figcaption>
+		{:else if hoveredEv}
+			<div class="dt-head">
+				<strong>{fmtYear(hoveredEv.ev.year)}</strong> — {hoveredEv.ev.label}
+			</div>
+			{#if hoveredEv.ev.detail}<div class="dt-note">{hoveredEv.ev.detail}</div>{/if}
+			<div class="dt-meta">
+				on lineage: <span class="mono">{hoveredEv.flow.label}</span>
+			</div>
+		{:else}
+			<div class="dt-hint">hover a ribbon or evidence dot for details</div>
+		{/if}
+	</div>
 </figure>
 
 <style>
 	figure {
-		--p-alive: #c08a3e;
-		--p-alive-soft: #e8d4a8;
-		--p-dead: #5a6470;
-		--p-dead-soft: #c2c8d0;
-		--rule: #d8d2c4;
-		--bg-soft: #f5f0e4;
-		--ink: #2a2620;
-		--ink-soft: #6b6357;
-
 		margin: 0;
 		font-family: system-ui, sans-serif;
+		--ink: #2a2620;
+		--ink-soft: #6b6357;
+		--rule: #d8d2c4;
+		--bg: #fbf8f0;
+	}
+
+	.controls {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 16px;
+		flex-wrap: wrap;
+		margin-bottom: 8px;
+		padding: 8px 12px;
+		background: var(--bg);
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+	}
+	.zoom {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+	}
+	.zoom button {
+		width: 28px;
+		height: 28px;
+		border: 1px solid var(--rule);
+		background: white;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 16px;
+		color: var(--ink);
+	}
+	.zoom button.reset {
+		width: auto;
+		padding: 0 10px;
+		font-size: 12px;
+	}
+	.zoom button:hover {
+		background: #f0e8d0;
+	}
+	.zoom .z {
+		min-width: 48px;
+		text-align: center;
+		font-family: ui-monospace, monospace;
+		color: var(--ink-soft);
+	}
+	.legend {
+		display: flex;
+		align-items: center;
+		gap: 4px 8px;
+		flex-wrap: wrap;
+		font-size: 12px;
+	}
+	.legend .sw {
+		display: inline-block;
+		width: 16px;
+		height: 10px;
+		border-radius: 2px;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+	}
+	.legend .sw-label {
+		margin-right: 6px;
+		font-family: ui-monospace, monospace;
+		color: var(--ink);
+	}
+
+	.frame {
+		display: grid;
+		grid-template-columns: 180px 1fr;
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+		background: #fdfbf5;
+		overflow: hidden;
+	}
+
+	.labels {
+		position: relative;
+		border-right: 1px solid var(--rule);
+		background: var(--bg);
+	}
+	.fam-label {
+		position: absolute;
+		left: 0;
+		right: 0;
+		padding: 6px 12px;
+		border-bottom: 1px dashed var(--rule);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.fam-name {
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--ink);
+	}
+	.fam-sub {
+		font-size: 10.5px;
+		color: var(--ink-soft);
+		font-family: ui-monospace, monospace;
 	}
 
 	.scroll {
 		overflow-x: auto;
-		background: #fbf8f0;
-		border: 1px solid var(--rule);
-		border-radius: 8px;
-		padding: 8px;
+		overflow-y: hidden;
 	}
-
-	svg {
+	.scroll svg {
 		display: block;
-		min-width: 100%;
-		height: auto;
 	}
 
 	.axis line {
 		stroke: #e6dfd0;
-		stroke-width: 1;
+		stroke-width: 0.75;
 	}
-	.axis-baseline {
-		stroke: var(--rule) !important;
+	.axis line.zero {
+		stroke: var(--rule);
+		stroke-width: 1;
+		stroke-dasharray: 3 2;
 	}
 	.axis text {
-		font-size: 11px;
-		fill: var(--ink-soft);
-		font-family: ui-monospace, monospace;
-	}
-
-	.label .lang-name {
-		font-size: 14px;
-		font-weight: 600;
-		fill: var(--ink);
-	}
-	.label .lang-family {
 		font-size: 10px;
 		fill: var(--ink-soft);
-	}
-	.label .lang-summary {
-		font-size: 11px;
-		fill: var(--ink-soft);
 		font-family: ui-monospace, monospace;
 	}
 
-	.band-alive {
-		fill: var(--p-alive);
-		opacity: 0.9;
+	.flow {
+		cursor: pointer;
+		transition: filter 0.15s ease;
 	}
-	.band-dead {
-		fill: var(--p-dead);
-		opacity: 0.85;
+	.flow.hovered {
+		filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
 	}
-	.band-trans {
-		opacity: 0.95;
-	}
-	.band-alive.approx,
-	.band-dead.approx {
-		fill: url(#extrapolated);
-		opacity: 0.6;
-	}
-
-	.band-form {
+	.flow-label {
 		font-size: 11px;
-		font-family: ui-monospace, monospace;
 		fill: #fff;
 		font-weight: 600;
-	}
-	.band-form-end {
-		fill: #fff;
-	}
-
-	.cond {
-		font-size: 9px;
-		fill: var(--ink-soft);
 		font-family: ui-monospace, monospace;
-		font-style: italic;
+		text-shadow:
+			0 1px 1px rgba(0, 0, 0, 0.3),
+			0 0 2px rgba(0, 0, 0, 0.4);
 	}
 
-	.connector {
-		stroke: var(--p-alive);
-		stroke-width: 1.5;
-		opacity: 0.55;
-	}
-
-	.end-marker {
-		font-size: 14px;
-		font-family: ui-monospace, monospace;
-	}
-	.end-marker.alive {
+	.m-alive {
 		fill: #2d7a3e;
+		stroke: white;
+		stroke-width: 1.5;
 	}
-	.end-marker.dying {
+	.m-dying {
 		fill: #b88a2e;
+		stroke: white;
+		stroke-width: 1.5;
 	}
-	.end-marker.dead {
-		fill: #8a3d3d;
+	.m-dead {
+		stroke: #8a3d3d;
+		stroke-width: 2;
+		stroke-linecap: round;
 	}
 
 	.ev circle {
 		fill: var(--ink);
-		stroke: #fff;
+		stroke: white;
 		stroke-width: 1.5;
 		cursor: help;
 	}
 	.ev:hover circle {
 		fill: #d4a64a;
+		r: 5;
 	}
 
-	.tip {
-		margin-top: 8px;
-		padding: 8px 12px;
-		background: #fbf8f0;
+	.detail {
+		margin-top: 10px;
+		padding: 10px 14px;
+		background: var(--bg);
 		border: 1px solid var(--rule);
 		border-radius: 6px;
 		font-size: 13px;
 		color: var(--ink);
+		min-height: 60px;
 	}
-	.tip .mono {
-		font-family: ui-monospace, monospace;
-	}
-	.tip-note {
-		margin-top: 4px;
+	.detail .dt-hint {
 		color: var(--ink-soft);
-		font-size: 12px;
+		font-style: italic;
 	}
-	.cond-inline {
-		font-family: ui-monospace, monospace;
-		color: var(--ink-soft);
-		margin-left: 6px;
-		font-size: 12px;
-	}
-
-	figcaption {
-		margin-top: 10px;
-	}
-	.legend {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px 16px;
-		font-size: 12px;
-		color: var(--ink-soft);
-	}
-	.legend li {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-	.sw {
-		display: inline-block;
-		width: 22px;
-		height: 10px;
-		border-radius: 2px;
-	}
-	.sw-alive {
-		background: var(--p-alive);
-	}
-	.sw-dead {
-		background: var(--p-dead);
-	}
-	.sw-trans {
-		background: linear-gradient(to right, var(--p-alive), var(--p-dead));
-	}
-	.marker {
-		font-family: ui-monospace, monospace;
+	.dt-head {
 		font-size: 14px;
 	}
-	.marker.alive {
+	.dt-cond {
+		color: var(--ink-soft);
+		font-family: ui-monospace, monospace;
+		margin-left: 6px;
+	}
+	.dt-meta {
+		margin-top: 4px;
+		font-size: 12px;
+		color: var(--ink-soft);
+	}
+	.dt-meta .mono {
+		font-family: ui-monospace, monospace;
+	}
+	.dt-note {
+		margin-top: 6px;
+		font-size: 12.5px;
+		color: var(--ink);
+	}
+	.dt-ev {
+		margin: 6px 0 0;
+		padding-left: 18px;
+		font-size: 12px;
+		color: var(--ink);
+	}
+	.dt-ev .mono {
+		font-family: ui-monospace, monospace;
+		color: var(--ink-soft);
+	}
+	.dt-detail {
+		color: var(--ink-soft);
+	}
+	.st {
+		text-transform: uppercase;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+	}
+	.st-alive,
+	.st-reborn {
 		color: #2d7a3e;
 	}
-	.marker.dying {
+	.st-dying {
 		color: #b88a2e;
 	}
-	.marker.dead {
+	.st-dead {
 		color: #8a3d3d;
-	}
-	.ev-dot {
-		display: inline-block;
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--ink);
-		border: 1.5px solid #fff;
-		box-shadow: 0 0 0 1px var(--ink);
 	}
 </style>
