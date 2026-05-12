@@ -1,38 +1,47 @@
-# create-svelte
+# The Graveyard of /p/
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+A site cataloguing the disappearance and transformation of the phoneme **/p/** across the world's languages.
 
-## Creating a project
+> /p/ — the voiceless bilabial plosive — is among the most widespread phonemes in human language. Yet it is absent from roughly 10% of languages, and in many others it has weakened, shifted, or vanished entirely under specific phonological conditions. This project attempts to record those losses.
 
-If you're seeing this, you've probably already done this step. Congrats!
+Hosted at **<https://p.languagepatterns.org>**.
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+## Stack
 
-# create a new project in my-app
-npm create svelte@latest my-app
+- [SvelteKit](https://svelte.dev/docs/kit) (Svelte 5)
+- [`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/kit/adapter-cloudflare) — deployed as a Cloudflare Worker
+- [Bun](https://bun.sh/) for package management and scripts
+
+## Develop
+
+```sh
+bun install
+bun run dev
 ```
 
-## Developing
+## Build
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```sh
+bun run build
 ```
 
-## Building
+The build emits a Cloudflare Worker bundle into `.svelte-kit/cloudflare/`.
 
-To create a production version of your app:
+## Deploy
 
-```bash
-npm run build
+```sh
+bun run build
+bunx wrangler deploy
 ```
 
-You can preview the production build with `npm run preview`.
+The custom domain (`p.languagepatterns.org`) is configured in [`wrangler.jsonc`](./wrangler.jsonc) via `routes` with `custom_domain: true`, so Cloudflare will provision the DNS record automatically if `languagepatterns.org` is a zone in the same account.
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+## Contributing
+
+Sound changes are encoded with the `Notation` component:
+
+```svelte
+<Notation changes={['OJ: p', 'MJ: ɸ']} condition="V_V" />
+```
+
+— a list of stages and (optionally) the environment in which the change applies. New entries go in [`src/routes/+page.svelte`](./src/routes/+page.svelte).
