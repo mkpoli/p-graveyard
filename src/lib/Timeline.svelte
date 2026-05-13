@@ -27,7 +27,7 @@
 		/** Color stops for the band. Color is interpolated across years. */
 		stops: Stop[];
 		evidence?: Evidence[];
-		status: 'alive' | 'dead' | 'dying' | 'reborn';
+		status: 'alive' | 'dead' | 'dying' | 'borrowed';
 		note?: string;
 	};
 
@@ -404,7 +404,7 @@
 			id: 'pj-loan',
 			family: 'pj',
 			label: 'Loanwords',
-			condition: 'Portuguese, Dutch, English — /p/ reborn',
+			condition: 'Portuguese, Dutch, English — /p/ in new positions via loans',
 			lane: 3,
 			start: 1543,
 			end: 2025,
@@ -418,7 +418,7 @@
 				{ year: 1543, label: 'Portuguese: pan, tabako', detail: '' },
 				{ year: 1900, label: 'English: pen, computer', detail: '' }
 			],
-			status: 'reborn'
+			status: 'borrowed'
 		}
 	];
 
@@ -687,7 +687,7 @@
 				{#each flows as flow (flow.id)}
 					{@const yMid = flowY(flow)}
 					{@const xe = x(flow.end)}
-					{#if flow.status === 'alive' || flow.status === 'reborn'}
+					{#if flow.status === 'alive' || flow.status === 'borrowed'}
 						<circle cx={xe + 6} cy={yMid} r="4" class="m-alive" />
 					{:else if flow.status === 'dying'}
 						<circle cx={xe + 6} cy={yMid} r="4" class="m-dying" />
@@ -989,7 +989,7 @@
 		letter-spacing: 0.05em;
 	}
 	.st-alive,
-	.st-reborn {
+	.st-borrowed {
 		color: #2d7a3e;
 	}
 	.st-dying {

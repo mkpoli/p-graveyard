@@ -2,7 +2,34 @@
 	import Timeline from '$lib/Timeline.svelte';
 	import Notation from '$lib/Notation.svelte';
 	import logo from '../assets/logo.png';
+
+	const title = 'The Graveyard of /p/';
+	const description =
+		"A phonological flow diagram of the voiceless bilabial plosive /p/ as it weakened, shifted, or vanished across language families — Indo-European, Semitic, Sinitic, Japonic.";
+	const url = 'https://p.languagepatterns.org/';
 </script>
+
+<svelte:head>
+	<title>{title}</title>
+	<meta name="description" content={description} />
+	<link rel="canonical" href={url} />
+
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content={title} />
+	<meta property="og:description" content={description} />
+	<meta property="og:url" content={url} />
+	<meta property="og:site_name" content="languagepatterns.org" />
+	<meta property="og:locale" content="en" />
+
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content={title} />
+	<meta name="twitter:description" content={description} />
+
+	<meta
+		name="keywords"
+		content="historical linguistics, phonology, sound change, /p/, voiceless bilabial plosive, Old Japanese, Middle Chinese, Proto-Semitic, Proto-Indo-European, Proto-Celtic, comparative linguistics"
+	/>
+</svelte:head>
 
 <header>
 	<img src={logo} alt="" class="logo" />
@@ -120,10 +147,15 @@
 
 		<article>
 			<h3>Japanese</h3>
-			<p class="status">Status: <span class="alive">Resurrected</span></p>
+			<p class="status">
+				Status: <span class="alive">Conditioned loss</span> — /p/ survived in narrow environments
+				and was later reinforced by loans.
+			</p>
 			<p>
-				The most thoroughly documented case. Old Japanese /p/ weakened to /ɸ/ across most positions
-				by the late Heian period, then split further by the following vowel:
+				The most thoroughly documented case. Old Japanese /p/ weakened to /ɸ/ in most positions
+				by the late Heian period, then split further by the following vowel. It was never
+				eliminated outright — the {'{Q, N}_V'} branch carried /p/ through unchanged — and from
+				the 16th century onward loanwords added /p/ back in unrestricted positions.
 			</p>
 			<ul>
 				<li>
@@ -146,8 +178,9 @@
 				</li>
 			</ul>
 			<p>
-				/p/ then re-entered the language wholesale: first via Portuguese loans (1543: <i>pan</i>,
-				<i>tabako</i>), then Dutch, and at scale through modern English loans.
+				/p/ then re-entered unrestricted positions wholesale: first via Portuguese loans (1543:
+				<i>pan</i>, <i>tabako</i>), then Dutch, and at scale through modern English loans —
+				reinforcing a phoneme that had narrowly survived the Heian-era weakening.
 			</p>
 		</article>
 
