@@ -493,6 +493,25 @@
 
 	// ─── Ribbon path: draws a fork-in curve from parent (if any) then a horizontal band
 
+	const FORK_YEARS = 300;
+
+	function effectiveStops(flow: Flow): Stop[] {
+		const stops = flow.stops;
+		if (stops.length === 0) return stops;
+		const first = stops[0];
+		if (first.opacity === 0 || flow.fadeFrom !== undefined) return stops;
+		const fadeYear = Math.min(first.year + FORK_YEARS, flow.end);
+		return [
+			{ year: first.year, phoneme: first.phoneme, opacity: 0 },
+			{ year: fadeYear, phoneme: first.phoneme, opacity: 1 },
+			...stops.filter((s, i) => i > 0 && s.year > fadeYear)
+		];
+	}
+
+	function labelStartYear(flow: Flow): number {
+		return flow.fadeFrom !== undefined ? flow.start : flow.start + FORK_YEARS;
+	}
+
 	function ribbonPath(flow: Flow): string {
 		const yMid = flowY(flow);
 		const yTop = yMid - bandHeight / 2;
@@ -507,8 +526,8 @@
 			const pYTop = pY - bandHeight / 2;
 			const pYBot = pY + bandHeight / 2;
 			const xSplit = x(flow.parent.year);
-			const forkLen = Math.min(120 * zoom, (xEnd - xSplit) * 0.4);
-			const xForkEnd = xSplit + forkLen;
+			const xForkEnd = Math.min(x(flow.parent.year + FORK_YEARS), xEnd);
+			const forkLen = xForkEnd - xSplit;
 			const c1 = xSplit + forkLen * 0.5;
 			const c2 = xForkEnd - forkLen * 0.5;
 
@@ -595,6 +614,7 @@
 				<defs>
 					{#each flows as flow (flow.id)}
 						{@const startYear = flow.fadeFrom ?? flow.start}
+						{@const stops = effectiveStops(flow)}
 						<linearGradient
 							id={`grad-${flow.id}`}
 							gradientUnits="userSpaceOnUse"
@@ -603,7 +623,7 @@
 							x2={x(flow.end)}
 							y2={0}
 						>
-							{#each flow.stops as stop, si (si)}
+							{#each stops as stop, si (si)}
 								{@const span = x(flow.end) - x(startYear)}
 								{@const off = span > 0 ? ((x(stop.year) - x(startYear)) / span) * 100 : 0}
 								<stop
@@ -649,26 +669,16 @@
 						tabindex="0"
 					>
 						<path d={ribbonPath(flow)} fill={`url(#grad-${flow.id})`} />
-						<!-- top/bottom border for definition -->
-						<path
-							d={ribbonPath(flow)}
-							fill="none"
-							stroke="rgba(0,0,0,0.18)"
-							stroke-width="0.75"
-						/>
 					</g>
 				{/each}
 
-				<!-- Flow labels (placed at start of each flow) -->
+				<!-- Flow labels (placed past the fade-in region) -->
 				{#each flows as flow (flow.id)}
 					{@const yMid = flowY(flow)}
-					{@const startYear = flow.parent ? flow.parent.year + 60 : flow.fadeFrom ?? flow.start}
-					{#if !flow.parent || flow.label}
-						<text
-							x={flow.parent ? x(flow.parent.year) + 70 * zoom : x(startYear) + 8}
-							y={yMid + 4}
-							class="flow-label"
-							pointer-events="none">{flow.label}</text
+					{@const lx = x(labelStartYear(flow)) + 6}
+					{#if lx < x(flow.end) - 10}
+						<text x={lx} y={yMid + 4} class="flow-label" pointer-events="none"
+							>{flow.label}</text
 						>
 					{/if}
 				{/each}
