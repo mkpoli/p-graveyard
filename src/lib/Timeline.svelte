@@ -10,7 +10,7 @@
 
 	type Flow = {
 		id: string;
-		family: 'pie' | 'psem' | 'oc' | 'pj';
+		family: 'pie' | 'psem' | 'oc' | 'pj' | 'drav';
 		label: string;
 		/** Sub-label for tooltip (e.g. conditioning environment) */
 		condition?: string;
@@ -28,27 +28,65 @@
 		stops: Stop[];
 		evidence?: Evidence[];
 		status: 'alive' | 'dead' | 'dying' | 'borrowed';
+		/** Classification of how /p/ developed in this lineage */
+		pattern?: Pattern;
 		note?: string;
 	};
 
+	// Perceptual palette: /p/ at the warm center. Bilabial/labial sounds
+	// (ɸ, β, b, pʰ) stay in the warm family — small hue shifts from amber.
+	// Far sounds (h glottal, ç palatal) move to cool greens/teals. ∅ is the
+	// same hue as /p/, just desaturated and lightened — a natural "fade-out"
+	// rather than a different sound.
 	const PHONEME_COLOR: Record<string, string> = {
-		p: '#c08a3e',
-		'*p': '#c08a3e',
-		'pʰ': '#cb9540',
-		b: '#a17440',
-		f: '#3a7ab5',
-		'*f': '#3a7ab5',
-		ɸ: '#7c5ba8',
-		v: '#2c5a8a',
-		h: '#5fa052',
-		ç: '#4a8a8a',
-		w: '#c46d8f',
-		'∅': '#9a948a'
+		p: '#c89240',
+		'*p': '#c89240',
+		'pʰ': '#d8a04b',
+		b: '#9a6e30',
+		f: '#b58850',
+		'*f': '#b58850',
+		ɸ: '#bf7a52',
+		β: '#b06e5e',
+		v: '#8d6e3e',
+		h: '#4f9166',
+		ç: '#2f7e85',
+		w: '#c8836a',
+		'∅': '#d8c8a8'
+	};
+
+	type Pattern =
+		| 'preserved'
+		| 'fricativization'
+		| 'weakening'
+		| 'loss'
+		| 'restricted'
+		| 'introduced';
+
+	const PATTERN_INFO: Record<Pattern, { glyph: string; label: string; tip: string }> = {
+		preserved: { glyph: '=', label: 'preserved', tip: '/p/ kept as [p]' },
+		fricativization: { glyph: 'ƒ', label: 'fricativization', tip: '/p/ → fricative (/f/, /ɸ/)' },
+		weakening: {
+			glyph: 'h',
+			label: 'weakening / debuccalization',
+			tip: '/p/ → /ɸ/ → /h/ (oral place dissolves)'
+		},
+		loss: { glyph: '∅', label: 'total loss', tip: '/p/ deleted from the inventory' },
+		restricted: {
+			glyph: '◇',
+			label: 'restricted survival',
+			tip: '/p/ kept only in specific environments'
+		},
+		introduced: {
+			glyph: '+',
+			label: 'introduced (loans)',
+			tip: '/p/ enters via borrowing in new positions'
+		}
 	};
 
 	const families: { id: Flow['family']; name: string; sub: string }[] = [
 		{ id: 'pie', name: 'Indo-European', sub: 'PIE *p → daughters' },
 		{ id: 'psem', name: 'Semitic', sub: 'Proto-Semitic *p → daughters' },
+		{ id: 'drav', name: 'Dravidian', sub: 'PSD *p → daughters' },
 		{ id: 'oc', name: 'Sinitic', sub: 'Old Chinese *p → Mandarin' },
 		{ id: 'pj', name: 'Japonic', sub: 'Proto-Japonic *p → Japanese' }
 	];
@@ -69,7 +107,8 @@
 				{ year: -2500, phoneme: 'p', opacity: 1 }
 			],
 			evidence: [{ year: -3500, label: 'PIE *ph₂tḗr', detail: 'reconstructed' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'celtic',
@@ -91,7 +130,8 @@
 				{ year: 800, label: 'OIr. athair "father"', detail: 'cf. Lat. pater' }
 			],
 			status: 'dead',
-			note: 'PIE *p disappeared early in Proto-Celtic.'
+			pattern: 'loss',
+			note: 'PIE *p disappeared early in Proto-Celtic. May have passed through *ɸ > *h before vanishing.'
 		},
 		{
 			id: 'germanic',
@@ -113,6 +153,7 @@
 				{ year: 800, label: 'OE fæder', detail: '< PGmc *fader' }
 			],
 			status: 'dead',
+			pattern: 'fricativization',
 			note: 'Inherited *p turned to *f via Grimm. Modern /p/ in Germanic comes mostly from loans and other sources.'
 		},
 		{
@@ -131,7 +172,8 @@
 				{ year: -700, label: 'Old Latin', detail: '/p/ preserved' },
 				{ year: 1300, label: 'Romance daughters', detail: '/p/ kept across the board' }
 			],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'hellenic',
@@ -149,7 +191,8 @@
 				{ year: -1450, label: 'Linear B pa-te-re', detail: 'Mycenaean' },
 				{ year: -700, label: 'Homeric πατήρ', detail: '' }
 			],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'iir',
@@ -164,7 +207,8 @@
 				{ year: 2025, phoneme: 'p' }
 			],
 			evidence: [{ year: -1500, label: 'Vedic pitár', detail: '' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 
 		// ─── Semitic
@@ -182,7 +226,8 @@
 				{ year: -2500, phoneme: 'p', opacity: 1 }
 			],
 			evidence: [{ year: -3500, label: 'PSem *p', detail: 'reconstructed' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'arabic',
@@ -203,7 +248,9 @@
 				{ year: -200, label: 'Old Arabic inscr.', detail: '' },
 				{ year: 700, label: 'Classical Arabic', detail: 'no /p/ in inherited words' }
 			],
-			status: 'dead'
+			status: 'dead',
+			pattern: 'fricativization',
+			note: 'PSem *pūm "mouth" → Arabic fam-. Loan /p/ adapted as /b/ or written with پ.'
 		},
 		{
 			id: 'hebrew',
@@ -218,7 +265,8 @@
 				{ year: 2025, phoneme: 'p' }
 			],
 			evidence: [{ year: -800, label: 'Biblical Hebrew', detail: '[p]~[f] allophony' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'akkadian',
@@ -234,7 +282,70 @@
 			],
 			evidence: [{ year: -2300, label: 'Old Akkadian', detail: '/p/ preserved' }],
 			status: 'alive',
+			pattern: 'preserved',
 			note: 'Language died ~100 CE but /p/ was preserved throughout its history.'
+		},
+
+		// ─── Dravidian
+		{
+			id: 'psd',
+			family: 'drav',
+			label: 'Proto-South-Dravidian *p',
+			lane: 0,
+			start: -2000,
+			end: 0,
+			fadeFrom: -3500,
+			stops: [
+				{ year: -3500, phoneme: 'p', opacity: 0 },
+				{ year: -2000, phoneme: 'p', opacity: 1 },
+				{ year: 0, phoneme: 'p', opacity: 1 }
+			],
+			evidence: [{ year: -2000, label: 'PSD *p', detail: 'reconstructed' }],
+			status: 'alive',
+			pattern: 'preserved'
+		},
+		{
+			id: 'tamil',
+			family: 'drav',
+			label: 'Tamil',
+			parent: { id: 'psd', year: 0 },
+			lane: -1,
+			start: 0,
+			end: 2025,
+			stops: [
+				{ year: 0, phoneme: 'p' },
+				{ year: 2025, phoneme: 'p' }
+			],
+			evidence: [
+				{ year: 300, label: 'Tolkāppiyam', detail: '/p/ preserved' },
+				{ year: 2025, label: 'Tamil pāl "milk"', detail: '' }
+			],
+			status: 'alive',
+			pattern: 'preserved'
+		},
+		{
+			id: 'kannada',
+			family: 'drav',
+			label: 'Kannada',
+			condition: '#_ — /p/ > /h/ (debuccalization)',
+			parent: { id: 'psd', year: 0 },
+			lane: 1,
+			start: 0,
+			end: 2025,
+			stops: [
+				{ year: 0, phoneme: 'p' },
+				{ year: 1000, phoneme: 'p' },
+				{ year: 1400, phoneme: 'h' },
+				{ year: 2025, phoneme: 'h' }
+			],
+			evidence: [
+				{ year: 500, label: 'Old Kannada pāl', detail: '/p/ preserved' },
+				{ year: 1500, label: 'Middle Kannada hāl(u)', detail: 'initial /p/ → /h/' },
+				{ year: 2025, label: 'Modern hāl(u) "milk"', detail: '' }
+			],
+			status: 'dead',
+			pattern: 'weakening',
+			note: 'South Dravidian *p > /h/ at word-initial position in Middle Kannada. /p/ survives elsewhere and in loans.'
 		},
 
 		// ─── Sinitic
@@ -255,7 +366,8 @@
 				{ year: -1000, label: 'OBI / Bronzeware', detail: 'OC *p reconstructed' },
 				{ year: 600, label: 'Qieyun 切韻', detail: '/p/ in all environments' }
 			],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'oc-heavy',
@@ -271,7 +383,8 @@
 				{ year: 2025, phoneme: 'p' }
 			],
 			evidence: [{ year: 2025, label: '北 běi', detail: '/p/ preserved' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'oc-light',
@@ -293,6 +406,7 @@
 				{ year: 2025, label: '飛 fēi, 風 fēng', detail: 'modern /f/ < MC *pjV' }
 			],
 			status: 'dead',
+			pattern: 'fricativization',
 			note: 'Late Middle Chinese labiodentalization.'
 		},
 
@@ -311,7 +425,8 @@
 				{ year: 600, phoneme: 'p', opacity: 1 }
 			],
 			evidence: [{ year: -300, label: 'PJ *p', detail: 'reconstructed' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'oj',
@@ -326,7 +441,8 @@
 				{ year: 800, phoneme: 'p' }
 			],
 			evidence: [{ year: 720, label: "Man'yōgana", detail: '/p/ likely [p]' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'preserved'
 		},
 		{
 			id: 'pj-qn',
@@ -334,7 +450,7 @@
 			label: '{Q,N}_V',
 			condition: 'after geminate / nasal — /p/ kept',
 			parent: { id: 'oj', year: 800 },
-			lane: -2,
+			lane: -3,
 			start: 800,
 			end: 2025,
 			stops: [
@@ -342,15 +458,16 @@
 				{ year: 2025, phoneme: 'p' }
 			],
 			evidence: [{ year: 2025, label: '切符, 散歩', detail: 'kippu, sanpo' }],
-			status: 'alive'
+			status: 'alive',
+			pattern: 'restricted'
 		},
 		{
 			id: 'pj-aoe',
 			family: 'pj',
-			label: 'V_V / _{a,o,e}',
-			condition: '/ɸ/ > /h/',
+			label: '#_{a,o,e}',
+			condition: 'word-initial → /ɸ/ → /h/',
 			parent: { id: 'oj', year: 800 },
-			lane: -1,
+			lane: -2,
 			start: 800,
 			end: 2025,
 			stops: [
@@ -362,17 +479,18 @@
 			evidence: [
 				{ year: 1100, label: 'Heian /ɸ/', detail: '' },
 				{ year: 1603, label: 'Nippo Jisho "f"', detail: '/ɸ/ still attested' },
-				{ year: 1900, label: 'modern /h/', detail: '' }
+				{ year: 1900, label: 'modern /h/', detail: 'hana, hi, hone' }
 			],
-			status: 'dead'
+			status: 'dead',
+			pattern: 'weakening'
 		},
 		{
 			id: 'pj-i',
 			family: 'pj',
-			label: 'V_V / _i',
-			condition: '/ɸ/ > /ç/',
+			label: '#_i',
+			condition: 'word-initial → /ɸ/ → /ç/',
 			parent: { id: 'oj', year: 800 },
-			lane: 1,
+			lane: -1,
 			start: 800,
 			end: 2025,
 			stops: [
@@ -381,31 +499,61 @@
 				{ year: 1900, phoneme: 'ç' },
 				{ year: 2025, phoneme: 'ç' }
 			],
-			evidence: [],
-			status: 'dead'
+			evidence: [{ year: 2025, label: 'ひと hito [çito]', detail: '' }],
+			status: 'dead',
+			pattern: 'weakening'
 		},
 		{
 			id: 'pj-u',
 			family: 'pj',
-			label: 'V_V / _u',
-			condition: '/ɸ/ — marginal',
+			label: '#_u',
+			condition: 'word-initial → /ɸ/ (kept marginally)',
 			parent: { id: 'oj', year: 800 },
-			lane: 2,
+			lane: 0,
 			start: 800,
 			end: 2025,
 			stops: [
 				{ year: 800, phoneme: 'ɸ' },
 				{ year: 2025, phoneme: 'ɸ' }
 			],
-			evidence: [],
-			status: 'dying'
+			evidence: [{ year: 2025, label: 'ふた futa [ɸɯta]', detail: '' }],
+			status: 'dying',
+			pattern: 'weakening'
+		},
+		{
+			id: 'pj-vv',
+			family: 'pj',
+			label: 'V_V',
+			condition: 'intervocalic — /ɸ/ → /β/ → /w/ → ∅',
+			parent: { id: 'oj', year: 800 },
+			lane: 1,
+			start: 800,
+			end: 2025,
+			stops: [
+				{ year: 800, phoneme: 'ɸ' },
+				{ year: 1100, phoneme: 'ɸ' },
+				{ year: 1300, phoneme: 'β' },
+				{ year: 1500, phoneme: 'w' },
+				{ year: 1700, phoneme: 'w' },
+				{ year: 1900, phoneme: '∅' },
+				{ year: 2025, phoneme: '∅' }
+			],
+			evidence: [
+				{ year: 900, label: 'kapa "river"', detail: 'OJ [p]' },
+				{ year: 1300, label: 'kaβa', detail: 'medial /p/ > /β/' },
+				{ year: 1700, label: 'kawa', detail: '/β/ > /w/' },
+				{ year: 2025, label: 'omou < omopu', detail: '/w/ deleted before non-/a/' }
+			],
+			status: 'dead',
+			pattern: 'loss',
+			note: 'Medial /p/ went through /ɸ/ → /β/ → /w/ and then deleted in many environments.'
 		},
 		{
 			id: 'pj-loan',
 			family: 'pj',
 			label: 'Loanwords',
 			condition: 'Portuguese, Dutch, English — /p/ in new positions via loans',
-			lane: 3,
+			lane: 2,
 			start: 1543,
 			end: 2025,
 			fadeFrom: 1400,
@@ -418,7 +566,8 @@
 				{ year: 1543, label: 'Portuguese: pan, tabako', detail: '' },
 				{ year: 1900, label: 'English: pen, computer', detail: '' }
 			],
-			status: 'borrowed'
+			status: 'borrowed',
+			pattern: 'introduced'
 		}
 	];
 
@@ -588,6 +737,16 @@
 		</div>
 	</div>
 
+	<div class="pat-legend">
+		<span class="pat-legend-title">Pattern shift</span>
+		{#each Object.entries(PATTERN_INFO) as [key, info] (key)}
+			<span class={`pat-item pat-${key}`} title={info.tip}>
+				<span class="pat-glyph">{info.glyph}</span>
+				<span class="pat-name">{info.label}</span>
+			</span>
+		{/each}
+	</div>
+
 	<div class="frame">
 		<aside class="labels" style:height={`${totalHeight}px`}>
 			{#each families as fam (fam.id)}
@@ -683,7 +842,7 @@
 					{/if}
 				{/each}
 
-				<!-- End markers -->
+				<!-- End markers + pattern badges -->
 				{#each flows as flow (flow.id)}
 					{@const yMid = flowY(flow)}
 					{@const xe = x(flow.end)}
@@ -695,6 +854,17 @@
 						<g>
 							<line x1={xe + 3} y1={yMid - 4} x2={xe + 9} y2={yMid + 4} class="m-dead" />
 							<line x1={xe + 3} y1={yMid + 4} x2={xe + 9} y2={yMid - 4} class="m-dead" />
+						</g>
+					{/if}
+					{#if flow.pattern}
+						<g>
+							<title>{PATTERN_INFO[flow.pattern].label}: {PATTERN_INFO[flow.pattern].tip}</title>
+							<text
+								x={xe + 18}
+								y={yMid + 4}
+								class={`pat-glyph-svg pat-${flow.pattern}`}
+								pointer-events="all">{PATTERN_INFO[flow.pattern].glyph}</text
+							>
 						</g>
 					{/if}
 				{/each}
@@ -734,6 +904,12 @@
 				{families.find((f) => f.id === hovered!.family)!.name} ·
 				<span class="mono">{fmtYear(hovered.start)} – {fmtYear(hovered.end)}</span> ·
 				<span class={`st st-${hovered.status}`}>{hovered.status}</span>
+				{#if hovered.pattern}
+					· <span class="pat">
+						<span class="pat-glyph">{PATTERN_INFO[hovered.pattern].glyph}</span>
+						{PATTERN_INFO[hovered.pattern].label}
+					</span>
+				{/if}
 			</div>
 			{#if hovered.note}<div class="dt-note">{hovered.note}</div>{/if}
 			{#if hovered.evidence && hovered.evidence.length}
@@ -997,5 +1173,112 @@
 	}
 	.st-dead {
 		color: #8a3d3d;
+	}
+
+	/* Pattern badges */
+	.pat-legend {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 12px;
+		margin: 10px 0 0;
+		padding: 8px 12px;
+		background: var(--bg);
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+		font-size: 12px;
+	}
+	.pat-legend-title {
+		font-size: 11px;
+		color: var(--ink-soft);
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		font-weight: 600;
+		margin-right: 4px;
+	}
+	.pat-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		cursor: help;
+	}
+	.pat-glyph {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 20px;
+		height: 20px;
+		border-radius: 3px;
+		font-family: ui-monospace, monospace;
+		font-weight: 700;
+		font-size: 12px;
+	}
+	.pat-name {
+		color: var(--ink);
+	}
+
+	.pat-preserved .pat-glyph {
+		background: #d4e8d4;
+		color: #2d6a3d;
+	}
+	.pat-fricativization .pat-glyph {
+		background: #d4dfee;
+		color: #2c5a8a;
+	}
+	.pat-weakening .pat-glyph {
+		background: #e8e0d0;
+		color: #8a6a2d;
+	}
+	.pat-loss .pat-glyph {
+		background: #e8d8d8;
+		color: #8a3d3d;
+	}
+	.pat-restricted .pat-glyph {
+		background: #ece4d8;
+		color: #6b5a2a;
+	}
+	.pat-introduced .pat-glyph {
+		background: #e0e0e8;
+		color: #5a5a8a;
+	}
+
+	.pat {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		text-transform: uppercase;
+		font-size: 10.5px;
+		letter-spacing: 0.06em;
+		color: var(--ink-soft);
+	}
+	.pat .pat-glyph {
+		width: 16px;
+		height: 16px;
+		font-size: 10.5px;
+	}
+
+	.pat-glyph-svg {
+		font-family: ui-monospace, monospace;
+		font-size: 12px;
+		font-weight: 700;
+		cursor: help;
+	}
+	.pat-glyph-svg.pat-preserved {
+		fill: #2d6a3d;
+	}
+	.pat-glyph-svg.pat-fricativization {
+		fill: #2c5a8a;
+	}
+	.pat-glyph-svg.pat-weakening {
+		fill: #8a6a2d;
+	}
+	.pat-glyph-svg.pat-loss {
+		fill: #8a3d3d;
+	}
+	.pat-glyph-svg.pat-restricted {
+		fill: #6b5a2a;
+	}
+	.pat-glyph-svg.pat-introduced {
+		fill: #5a5a8a;
 	}
 </style>
