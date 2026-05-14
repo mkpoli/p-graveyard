@@ -185,12 +185,70 @@
 		</article>
 
 		<h2>References</h2>
-		<p class="refs">
-			Frellesvig, Bjarke (2010). <i>A History of the Japanese Language</i>. ·
-			Baxter & Sagart (2014). <i>Old Chinese: A New Reconstruction</i>. ·
-			Matasović (2009). <i>Etymological Dictionary of Proto-Celtic</i>. ·
-			Lipiński (2001). <i>Semitic Languages: Outline of a Comparative Grammar</i>.
-		</p>
+		<ol class="refs">
+			<li>
+				<strong>Frellesvig, Bjarke</strong> (2010). <i>A History of the Japanese Language</i>.
+				Cambridge University Press. — The standard handbook on the OJ /p/ chain, including the
+				intervocalic /ɸ/ → /β/ → /w/ → ∅ pathway and the post-Heian split by following vowel.
+			</li>
+			<li>
+				<strong>Miyake, Marc Hideo</strong> (2003). <i>Old Japanese: A Phonetic Reconstruction</i>.
+				RoutledgeCurzon. — Reconstruction arguments for OJ [p] versus other proposals.
+			</li>
+			<li>
+				<strong>Baxter, William H. &amp; Laurent Sagart</strong> (2014). <i>Old Chinese: A New
+				Reconstruction</i>. Oxford University Press. — Reconstruction of OC *p- and its Middle
+				Chinese reflexes.
+			</li>
+			<li>
+				<strong>Pulleyblank, Edwin G.</strong> (1984). <i>Middle Chinese: A Study in Historical
+				Phonology</i>. UBC Press. — Late Middle Chinese labiodentalization (輕唇音 vs 重唇音
+				split).
+			</li>
+			<li>
+				<strong>Matasović, Ranko</strong> (2009). <i>Etymological Dictionary of Proto-Celtic</i>.
+				Brill. — Proto-Celtic *p &gt; ∅, with discussion of the *p → *ɸ → *h → ∅ intermediate
+				stages.
+			</li>
+			<li>
+				<strong>Schrijver, Peter</strong> (1995). <i>Studies in British Celtic Historical
+				Phonology</i>. Rodopi. — On the loss of PIE *p in Celtic and the secondary /p/ in Brythonic
+				from *kʷ.
+			</li>
+			<li>
+				<strong>Ringe, Don</strong> (2017). <i>From Proto-Indo-European to Proto-Germanic</i> (2nd
+				ed.). Oxford University Press. — Grimm's Law and the PIE *p &gt; PGmc *f shift.
+			</li>
+			<li>
+				<strong>Lipiński, Edward</strong> (2001). <i>Semitic Languages: Outline of a Comparative
+				Grammar</i> (2nd ed.). Peeters. — Proto-Semitic *p in Arabic, Hebrew, Akkadian.
+			</li>
+			<li>
+				<strong>Huehnergard, John</strong> (2011). <i>A Grammar of Akkadian</i> (3rd ed.).
+				Eisenbrauns. — Akkadian /p/ inventory and Semitic comparative context.
+			</li>
+			<li>
+				<strong>Suchard, Benjamin D.</strong> (2024). <a
+					href="https://bnuyaminim.wordpress.com/2024/11/07/froto-semitic/">"Froto-Semitic"</a>.
+				— Notes on the PSem *p &gt; Arabic /f/ correspondence and adaptation of foreign /p/.
+			</li>
+			<li>
+				<strong>Krishnamurti, Bhadriraju</strong> (2003). <i>The Dravidian Languages</i>.
+				Cambridge University Press. — South Dravidian *p- &gt; h- in Middle Kannada (e.g. *pāl
+				&gt; hāl(u) "milk"); retention in Tamil.
+			</li>
+			<li>
+				<strong>Steever, Sanford B.</strong> (ed., 1998). <i>The Dravidian Languages</i>.
+				Routledge. — Per-language descriptions including Kannada initial debuccalization.
+			</li>
+			<li>
+				Wikipedia — <a href="https://en.wikipedia.org/wiki/Old_Japanese">Old Japanese</a>,
+				<a href="https://en.wikipedia.org/wiki/Grimm%27s_law">Grimm's Law</a>,
+				<a href="https://en.wikipedia.org/wiki/Proto-Celtic_language">Proto-Celtic</a>,
+				<a href="https://en.wikipedia.org/wiki/Proto-Semitic_language">Proto-Semitic</a>.
+				— First-stop summaries for each lineage.
+			</li>
+		</ol>
 	</section>
 </main>
 
@@ -396,10 +454,31 @@
 		margin: 0.25em 0;
 	}
 
-	.refs {
-		font-size: 0.9em;
-		color: #6b6357;
-		line-height: 1.7;
+	ol.refs {
+		font-size: 0.92em;
+		color: #2a2620;
+		line-height: 1.6;
+		padding-left: 1.6em;
+		margin: 0.8em 0 0;
+	}
+	ol.refs li {
+		margin: 0.5em 0;
+		padding-left: 0.2em;
+	}
+	ol.refs strong {
+		color: #2a2620;
+	}
+	ol.refs i {
+		color: #2a2620;
+	}
+	ol.refs a {
+		color: #c08a3e;
+		text-decoration: underline;
+		text-decoration-color: rgba(192, 138, 62, 0.4);
+		text-underline-offset: 2px;
+	}
+	ol.refs a:hover {
+		text-decoration-color: #c08a3e;
 	}
 
 	footer {

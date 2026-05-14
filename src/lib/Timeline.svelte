@@ -471,7 +471,8 @@
 			start: 800,
 			end: 2025,
 			stops: [
-				{ year: 800, phoneme: 'ɸ' },
+				{ year: 800, phoneme: 'p' },
+				{ year: 1100, phoneme: 'ɸ' },
 				{ year: 1400, phoneme: 'ɸ' },
 				{ year: 1700, phoneme: 'h' },
 				{ year: 2025, phoneme: 'h' }
@@ -494,7 +495,8 @@
 			start: 800,
 			end: 2025,
 			stops: [
-				{ year: 800, phoneme: 'ɸ' },
+				{ year: 800, phoneme: 'p' },
+				{ year: 1100, phoneme: 'ɸ' },
 				{ year: 1700, phoneme: 'ɸ' },
 				{ year: 1900, phoneme: 'ç' },
 				{ year: 2025, phoneme: 'ç' }
@@ -513,7 +515,8 @@
 			start: 800,
 			end: 2025,
 			stops: [
-				{ year: 800, phoneme: 'ɸ' },
+				{ year: 800, phoneme: 'p' },
+				{ year: 1100, phoneme: 'ɸ' },
 				{ year: 2025, phoneme: 'ɸ' }
 			],
 			evidence: [{ year: 2025, label: 'ふた futa [ɸɯta]', detail: '' }],
@@ -530,7 +533,7 @@
 			start: 800,
 			end: 2025,
 			stops: [
-				{ year: 800, phoneme: 'ɸ' },
+				{ year: 800, phoneme: 'p' },
 				{ year: 1100, phoneme: 'ɸ' },
 				{ year: 1300, phoneme: 'β' },
 				{ year: 1500, phoneme: 'w' },
@@ -645,20 +648,18 @@
 	const FORK_YEARS = 300;
 
 	function effectiveStops(flow: Flow): Stop[] {
-		const stops = flow.stops;
-		if (stops.length === 0) return stops;
-		const first = stops[0];
-		if (first.opacity === 0 || flow.fadeFrom !== undefined) return stops;
-		const fadeYear = Math.min(first.year + FORK_YEARS, flow.end);
-		return [
-			{ year: first.year, phoneme: first.phoneme, opacity: 0 },
-			{ year: fadeYear, phoneme: first.phoneme, opacity: 1 },
-			...stops.filter((s, i) => i > 0 && s.year > fadeYear)
-		];
+		// Root flows (no parent) get their fade-in from explicit fadeFrom stops.
+		// Forked children keep their parent's color at the split point — no
+		// synthetic fade, otherwise the child reads as transparent right where
+		// the parent is solid.
+		return flow.stops;
 	}
 
 	function labelStartYear(flow: Flow): number {
-		return flow.fadeFrom !== undefined ? flow.start : flow.start + FORK_YEARS;
+		// For children, push the label past the fork curve. For roots, past the
+		// fade-in (which lives between fadeFrom and start).
+		if (flow.parent) return flow.parent.year + FORK_YEARS;
+		return flow.start;
 	}
 
 	function ribbonPath(flow: Flow): string {
