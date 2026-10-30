@@ -1,22 +1,21 @@
 <script lang="ts">
 	// The header's Sponsor pill, led by the author's face, and the dialog it opens: her portrait,
-	// why she needs help, then three steps that end at the Ko-fi button.
+	// what a tip pays for, then three steps that end at the Ko-fi button.
 	const text = {
 		label: 'Sponsor',
 		close: 'Close',
-		lead: "I make The Graveyard of /p/ on my own, out of love for languages, and I pay for it myself. I don't have a job, and my small TA pay doesn't cover rent and food. Some days I can barely afford to eat.",
-		ask: 'Please help me keep going 🥺 Even one dollar helps me eat today.',
-		howTo: 'How to help',
+		lead: "I build The Graveyard of /p/ on my own, with no funding behind it. It's free for everyone, and I'd like to keep it that way.",
+		ask: 'If The Graveyard of /p/ is useful to you, a tip on Ko-fi gives me time to keep improving it.',
+		howTo: 'How to tip',
 		steps: [
 			'Tap Ko-fi below.',
-			'Pick any amount. Small is fine.',
+			'Pick any amount, one-time or monthly.',
 			'Pay with PayPal or a card. No sign-up needed.'
 		],
 		kofi: 'One-time or monthly',
-		company: 'Company sponsorship',
-		companyHint: "I'd love to put your ad on this site. Please write to mkpoli@mkpo.li.",
-		thanks:
-			'Thank you for reading this far. Your help keeps me fed and keeps The Graveyard of /p/ growing 💗'
+		company: 'Companies can sponsor too.',
+		companyHint: 'With an ad on this site. Write to mkpoli@mkpo.li.',
+		thanks: 'Thank you for using The Graveyard of /p/ 💗'
 	};
 
 	let open = $state(false);
