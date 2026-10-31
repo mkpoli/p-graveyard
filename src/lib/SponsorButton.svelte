@@ -9,12 +9,12 @@
 		howTo: 'How to tip',
 		steps: [
 			'Tap Ko-fi below.',
-			'Pick any amount, one-time or monthly.',
+			'Pick any amount.',
 			'Pay with PayPal or a card. No sign-up needed.'
 		],
 		kofi: 'One-time or monthly',
 		company: 'Companies can sponsor too.',
-		companyHint: 'With an ad on this site. Write to mkpoli@mkpo.li.',
+		companyHint: 'Write to mkpoli@mkpo.li.',
 		thanks: 'Thank you for using The Graveyard of /p/ 💗'
 	};
 
