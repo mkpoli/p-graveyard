@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Timeline from '$lib/Timeline.svelte';
 	import Notation from '$lib/Notation.svelte';
+	import SponsorButton from '$lib/SponsorButton.svelte';
 	import logo from '../assets/logo.png';
 
 	const title = 'The Graveyard of /p/';
@@ -32,6 +33,7 @@
 </svelte:head>
 
 <header>
+	<div class="header-actions"><SponsorButton /></div>
 	<img src={logo} alt="" class="logo" />
 	<h1>The Graveyard of /p/</h1>
 	<p class="tagline">A record of where the voiceless bilabial plosive went to die.</p>
@@ -266,10 +268,19 @@
 	}
 
 	header {
+		position: relative;
 		text-align: center;
 		padding: 2.5em 1em 1em;
 		border-bottom: 1px solid #d8d2c4;
 		background: #fbf8f0;
+	}
+	.header-actions {
+		position: absolute;
+		inset-block-start: 0.75rem;
+		inset-inline-end: 0.75rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 	header .logo {
 		max-width: 96px;
