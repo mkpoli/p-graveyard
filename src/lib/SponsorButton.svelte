@@ -1,18 +1,15 @@
 <script lang="ts">
 	// The header's Sponsor pill, led by the author's face, and the dialog it opens: her portrait,
-	// what a tip pays for, then three steps that end at the Ko-fi button.
+	// what a tip pays for, then three steps that end at the Ko-fi and OFUSE buttons.
 	const text = {
 		label: 'Sponsor',
 		close: 'Close',
 		lead: "I build The Graveyard of /p/ on my own, with no funding behind it. It's free for everyone, and I'd like to keep it that way.",
-		ask: 'If The Graveyard of /p/ is useful to you, a tip on Ko-fi gives me time to keep improving it.',
+		ask: 'If The Graveyard of /p/ is useful to you, a tip gives me time to keep improving it.',
 		howTo: 'How to tip',
-		steps: [
-			'Tap Ko-fi below.',
-			'Pick any amount.',
-			'Pay with PayPal or a card. No sign-up needed.'
-		],
+		steps: ['Tap either button below.', 'Pick an amount.', 'Pay by card. No sign-up needed.'],
 		kofi: 'One-time or monthly',
+		ofuse: 'Tip with a message',
 		company: 'Companies can sponsor too.',
 		companyHint: 'Write to mkpoli@mkpo.li.',
 		thanks: 'Thank you for using The Graveyard of /p/ 💗'
@@ -100,9 +97,16 @@
 					{#each text.steps as step (step)}<li>{step}</li>{/each}
 				</ol>
 			</section>
-			<a class="kofi" href="https://ko-fi.com/mkpoli" target="_blank" rel="noreferrer noopener">
+			<a class="tip kofi" href="https://ko-fi.com/mkpoli" target="_blank" rel="noreferrer noopener">
 				<img class="mark" src="/brand/kofi-symbol.svg" alt="" width="34" height="27" />
 				<span class="copy"><strong>Ko-fi</strong><small>{text.kofi}</small></span>
+				<svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"
+					><path d="M5 12h14m-6-6 6 6-6 6" /></svg
+				>
+			</a>
+			<a class="tip ofuse" href="https://ofuse.me/mkpoli" target="_blank" rel="noreferrer noopener">
+				<img class="mark" src="/brand/ofuse-icon.svg" alt="" width="26" height="28" />
+				<span class="copy"><strong>OFUSE</strong><small>{text.ofuse}</small></span>
 				<svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"
 					><path d="M5 12h14m-6-6 6 6-6 6" /></svg
 				>
@@ -156,7 +160,7 @@
 
 	.sponsor:focus-visible,
 	.dismiss:focus-visible,
-	.kofi:focus-visible,
+	.tip:focus-visible,
 	.company:focus-visible {
 		outline: 2px solid #8a5a14;
 		outline-offset: 2px;
@@ -415,18 +419,27 @@
 		transform: translateY(-1px);
 	}
 
-	.kofi {
+	.tip {
 		display: flex;
 		align-items: center;
 		gap: 12px;
 		padding-block: 12px;
 		padding-inline: 12px 18px;
 		border-radius: 999px;
-		background: #202020;
-		border: 1px solid light-dark(#202020, rgb(255 255 255 / 0.2));
 		color: #fff;
 		text-decoration: none;
 		box-shadow: 0 6px 16px rgb(32 32 32 / 0.28);
+	}
+
+	.kofi {
+		background: #202020;
+		border: 1px solid light-dark(#202020, rgb(255 255 255 / 0.2));
+	}
+
+	.ofuse {
+		background: #267da0;
+		border: 1px solid #267da0;
+		box-shadow: 0 6px 16px rgb(38 125 160 / 0.3);
 	}
 
 	.mark {
@@ -464,8 +477,12 @@
 		line-height: 1.4;
 	}
 
-	.kofi .copy strong {
+	.tip .copy strong {
 		font-size: 1rem;
+	}
+
+	.tip .copy small {
+		color: #fff;
 	}
 
 	.company {
@@ -540,15 +557,19 @@
 			animation: arrive 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
 		}
 
-		.kofi {
+		.tip {
 			transition:
 				transform 180ms ease,
 				box-shadow 180ms ease;
 		}
 
-		.kofi:hover {
+		.tip:hover {
 			transform: translateY(-1px);
 			box-shadow: 0 8px 22px rgb(32 32 32 / 0.38);
+		}
+
+		.ofuse:hover {
+			box-shadow: 0 8px 22px rgb(38 125 160 / 0.42);
 		}
 	}
 
