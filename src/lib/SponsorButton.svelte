@@ -38,13 +38,24 @@
 		return { destroy: () => node.remove() };
 	}
 
-	// A click on the backdrop closes the dialog; one on its own scrollbar also targets the dialog,
-	// so only a click outside its box counts.
-	function outside(event: MouseEvent) {
-		if (!dialog || event.target !== dialog) return;
+	// A press that starts and ends outside the box closes the dialog. A drag out of selected text
+	// ends on the dialog element too, so the press must also have begun outside.
+	let pressedOutside = false;
+
+	function isOutside(event: MouseEvent) {
+		if (!dialog) return false;
 		const box = dialog.getBoundingClientRect();
 		const { clientX: x, clientY: y } = event;
-		if (x < box.left || x > box.right || y < box.top || y > box.bottom) dialog.close();
+		return x < box.left || x > box.right || y < box.top || y > box.bottom;
+	}
+
+	function press(event: MouseEvent) {
+		pressedOutside = event.target === dialog && isOutside(event);
+	}
+
+	function release(event: MouseEvent) {
+		if (pressedOutside && event.target === dialog && isOutside(event)) dialog?.close();
+		pressedOutside = false;
 	}
 
 	const heart =
@@ -72,7 +83,8 @@
 		use:portal
 		aria-labelledby="sponsor-title"
 		onclose={() => (open = false)}
-		onclick={outside}
+		onmousedown={press}
+		onclick={release}
 	>
 		<div class="top">
 			<h2 id="sponsor-title">{text.label}</h2>
