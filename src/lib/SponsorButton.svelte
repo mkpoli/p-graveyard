@@ -12,14 +12,24 @@
 		ofuse: 'Tip with a message',
 		company: 'Companies can sponsor too.',
 		companyHint: 'Write to mkpoli@mkpo.li.',
+		supporters: 'Recent supporters',
+		anonymous: 'Someone',
 		thanks: 'Thank you for using The Graveyard of /p/ 💗'
 	};
 
 	let open = $state(false);
+	let rollLoaded = false;
 	let dialog = $state<HTMLDialogElement>();
 
 	$effect(() => {
 		if (open && dialog && !dialog.open) dialog.showModal();
+		if (open && !rollLoaded) {
+			rollLoaded = true;
+			const script = document.createElement('script');
+			script.type = 'module';
+			script.src = 'https://supporters.mkpo.li/roll.js';
+			document.head.append(script);
+		}
 	});
 
 	// The dialog lives under <body>, away from the header's stacking and wrapping.
@@ -118,6 +128,7 @@
 				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4V6Zm0 1 8 6 8-6" /></svg>
 				<span class="copy"><strong>{text.company}</strong><small>{text.companyHint}</small></span>
 			</a>
+			<supporters-roll label={text.supporters} anonymous={text.anonymous}></supporters-roll>
 			<p class="thanks">{text.thanks}</p>
 		</div>
 	</dialog>
